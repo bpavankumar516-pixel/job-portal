@@ -9,13 +9,13 @@ const REMEMBERED_KEY = 'jobportal_remembered_info';
 const DEFAULT_USERS = [
   {
     id: 'usr_recruiter_01',
-    fullName: 'Sarah Jenkins',
+    fullName: 'Pavan Kumar',
     email: 'recruiter@jobportal.com',
     password: 'Password@123',
     role: 'recruiter',
-    company: 'TechCorp Global',
-    headline: 'Senior Talent Acquisition Manager',
-    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    company: 'TechCorp Solutions',
+    headline: 'Senior Lead Recruiter',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
     createdAt: new Date().toISOString(),
   },
   {
@@ -35,6 +35,31 @@ export const initUsersDB = () => {
   const existing = localStorage.getItem(USERS_DB_KEY);
   if (!existing) {
     localStorage.setItem(USERS_DB_KEY, JSON.stringify(DEFAULT_USERS));
+  } else {
+    try {
+      const users = JSON.parse(existing);
+      const rec = users.find((u) => u.email === 'recruiter@jobportal.com');
+      if (rec && rec.fullName !== 'Pavan Kumar') {
+        rec.fullName = 'Pavan Kumar';
+        localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
+      }
+    } catch {
+      // ignore
+    }
+  }
+
+  // Update current session if logged in as recruiter
+  try {
+    const cur = localStorage.getItem(USER_KEY);
+    if (cur) {
+      const parsed = JSON.parse(cur);
+      if (parsed.email === 'recruiter@jobportal.com' && parsed.fullName !== 'Pavan Kumar') {
+        parsed.fullName = 'Pavan Kumar';
+        localStorage.setItem(USER_KEY, JSON.stringify(parsed));
+      }
+    }
+  } catch {
+    // ignore
   }
 };
 

@@ -1,261 +1,298 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { Navbar } from '../components/common/Navbar';
+import { Sidebar } from '../components/dashboard/Sidebar';
+import { StatCard } from '../components/dashboard/StatCard';
+import { QuickActions } from '../components/dashboard/QuickActions';
+import { DashboardCharts } from '../components/dashboard/DashboardCharts';
+import { RecentActivities } from '../components/dashboard/RecentActivities';
+import { TopCompanies } from '../components/dashboard/TopCompanies';
+import { QuickJobModal } from '../components/dashboard/QuickJobModal';
 import {
-  CheckCircle2,
-  Shield,
+  Building2,
   Briefcase,
-  Users,
-  Building,
+  Clock,
+  User,
   FileText,
   Bookmark,
+  Menu,
+  ChevronDown,
   LogOut,
   Sparkles,
-  ArrowRight,
-  Database,
-  Lock,
+  Shield,
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 export const Dashboard = () => {
-  const { user, logout, role } = useAuth();
-  const isRecruiter = (user?.role || role) === 'recruiter';
+  const { user, role, logout, setActiveRole } = useAuth();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [isPostModalOpen, setIsPostModalOpen] = useState(false);
+  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
+  const dropdownRef = useRef(null);
+
+  // Close dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target)) {
+        setProfileDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Dynamic state for stats matching the reference image
+  const [stats, setStats] = useState({
+    totalCompanies: 128,
+    totalJobs: 436,
+    activeJobs: 212,
+    totalCandidates: 2846,
+    totalApplications: 5319,
+    savedJobs: 94,
+  });
+
+  const displayName =
+    user?.fullName ||
+    (role === 'candidate' ? 'Candidate' : 'Pavan Kumar');
+  const displayRole = user?.role || role || 'recruiter';
+  const displayInitial = displayName.charAt(0).toUpperCase();
+
+  const handleJobCreated = (newJob) => {
+    setStats((prev) => ({
+      ...prev,
+      totalJobs: prev.totalJobs + 1,
+      activeJobs: prev.activeJobs + 1,
+    }));
+  };
 
   return (
-    <div className="min-h-screen bg-[#F8F9FC] flex flex-col">
-      <Navbar />
+    <div className="min-h-screen bg-[#F8F9FC] flex">
+      {/* 1. Dark Slate Sidebar matching reference image */}
+      <Sidebar
+        isOpen={sidebarOpen}
+        onClose={() => setSidebarOpen(false)}
+      />
 
-      <main className="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8 sm:py-10">
-        {/* Welcome Banner in Slate #25324B */}
-        <div className="bg-gradient-to-r from-white via-white to-[#F0F3F8] rounded-3xl p-6 sm:p-8 shadow-sm border border-[#E9ECF2] relative overflow-hidden mb-8">
-          <div className="absolute top-0 right-0 w-80 h-full bg-gradient-to-l from-[#E6EAF2] to-transparent opacity-60 pointer-events-none" />
-
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 relative z-10">
-            <div className="flex items-center gap-4">
-              <img
-                src={
-                  user?.avatar ||
-                  `https://api.dicebear.com/7.x/initials/svg?seed=${encodeURIComponent(
-                    user?.fullName || 'User'
-                  )}`
-                }
-                alt={user?.fullName || 'User'}
-                className="w-16 h-16 rounded-2xl object-cover border-2 border-[#25324B] shadow-md"
-              />
-              <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <h1 className="text-2xl sm:text-3xl font-extrabold text-[#25324B]">
-                    Welcome back, {user?.fullName}!
-                  </h1>
-                  <span className="px-2.5 py-0.5 rounded-full text-xs font-bold bg-[#F0F3F8] text-[#25324B] border border-[#CCD5E4]">
-                    {user?.role}
-                  </span>
-                </div>
-                <p className="text-sm text-[#515B6F]">
-                  You are securely signed in via{' '}
-                  <span className="font-semibold text-[#25324B]">
-                    Local Storage Session
-                  </span>
-                  . Module 1 Authentication is fully functional.
-                </p>
-              </div>
-            </div>
-
-            <button
-              type="button"
-              onClick={logout}
-              className="flex items-center gap-2 px-5 py-2.5 rounded-xl border border-red-200 bg-white hover:bg-red-50 text-red-600 font-bold text-sm transition-colors shadow-2xs cursor-pointer flex-shrink-0"
-            >
-              <LogOut className="w-4 h-4" />
-              <span>Sign Out</span>
-            </button>
-          </div>
-        </div>
-
-        {/* Module 1 Verification Card */}
-        <div className="bg-white rounded-3xl p-6 sm:p-8 shadow-sm border border-[#E9ECF2] mb-8">
-          <div className="flex items-center justify-between mb-6 flex-wrap gap-2">
+      {/* 2. Main Content Area */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <main className="flex-1 p-6 sm:p-8 lg:p-10 max-w-[1440px] w-full mx-auto space-y-6">
+          {/* Header Row: Welcome Title on Left, Recruiter Pill Badge on Right */}
+          <div className="flex items-start sm:items-center justify-between gap-4">
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-[#F0F3F8] text-[#25324B] flex items-center justify-center border border-[#CCD5E4]">
-                <CheckCircle2 className="w-6 h-6 stroke-[2.2]" />
-              </div>
+              {/* Mobile Menu Hamburger */}
+              <button
+                type="button"
+                onClick={() => setSidebarOpen(true)}
+                className="lg:hidden p-2 rounded-xl text-[#25324B] hover:bg-white transition-colors cursor-pointer"
+                aria-label="Open Navigation"
+              >
+                <Menu className="w-5 h-5 stroke-[2]" />
+              </button>
+
               <div>
-                <h3 className="text-lg font-bold text-[#25324B]">
-                  Module 1: Authentication Completed
-                </h3>
-                <p className="text-xs text-[#7C8493]">
-                  Styled exclusively in Slate #25324B theme with Local Storage & Context API
+                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#25324B] tracking-tight">
+                  Welcome back, {displayName}!
+                </h1>
+                <p className="text-xs sm:text-sm text-[#7C8493] mt-1 font-medium">
+                  {displayRole === 'candidate'
+                    ? 'Here is what is happening with your job applications today.'
+                    : 'Here is what is happening with your hiring today.'}
                 </p>
               </div>
             </div>
 
-            <span className="px-3 py-1 bg-[#F0F3F8] text-[#25324B] text-xs font-bold rounded-full border border-[#CCD5E4]">
-              Active Status: Verified & Secured
-            </span>
+            {/* Real-time Interactive Profile Dropdown matching reference image */}
+            <div className="relative" ref={dropdownRef}>
+              <button
+                type="button"
+                onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
+                className="flex items-center gap-2.5 px-3.5 py-1.5 rounded-full bg-white hover:bg-gray-50 border border-gray-200/90 shadow-[0_1px_2px_rgba(0,0,0,0.04)] hover:shadow-xs transition-all cursor-pointer group focus:outline-none select-none"
+                aria-expanded={profileDropdownOpen}
+              >
+                <div className="w-7 h-7 rounded-full bg-[#25324B] text-white flex items-center justify-center font-extrabold text-xs flex-shrink-0 transition-transform group-hover:scale-105">
+                  {displayInitial}
+                </div>
+                <div className="flex flex-col text-left">
+                  <span className="text-xs font-bold text-[#25324B] leading-none">
+                    {displayName}
+                  </span>
+                  <span className="text-[10px] text-[#7C8493] font-semibold capitalize mt-0.5">
+                    {displayRole}
+                  </span>
+                </div>
+                <ChevronDown
+                  className={`w-3.5 h-3.5 text-[#7C8493] transition-transform duration-200 ${
+                    profileDropdownOpen ? 'rotate-180 text-[#25324B]' : 'group-hover:text-[#25324B]'
+                  }`}
+                />
+              </button>
+
+              {/* Real-time SaaS Profile Dropdown Menu */}
+              {profileDropdownOpen && (
+                <div className="absolute right-0 mt-2.5 w-72 bg-white rounded-2xl shadow-xl border border-[#E9ECF2] p-2 z-50 animate-fadeIn text-left">
+                  {/* User Profile Header Card */}
+                  <div className="p-3 bg-[#F8F9FC] rounded-xl border border-[#E9ECF2]/60 mb-1.5">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 rounded-full bg-[#25324B] text-white flex items-center justify-center font-extrabold text-sm shadow-xs flex-shrink-0">
+                        {displayInitial}
+                      </div>
+                      <div className="flex flex-col min-w-0">
+                        <span className="text-xs font-extrabold text-[#25324B] truncate">
+                          {displayName}
+                        </span>
+                        <span className="text-[11px] text-[#7C8493] truncate font-medium">
+                          {user?.email || 'recruiter@jobportal.com'}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Dropdown Action Items */}
+                  <div className="space-y-0.5 py-1 text-xs">
+                    {/* View Profile */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toast.info(`Viewing profile for ${displayName}`);
+                        setProfileDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#515B6F] hover:text-[#25324B] hover:bg-[#F0F3F8] transition-colors font-medium cursor-pointer"
+                    >
+                      <User className="w-4 h-4 text-[#7C8493]" />
+                      <span>My Profile & Details</span>
+                    </button>
+
+                    {/* Company Workspace */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toast.info('Company Management (Module 3) is connected.');
+                        setProfileDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#515B6F] hover:text-[#25324B] hover:bg-[#F0F3F8] transition-colors font-medium cursor-pointer"
+                    >
+                      <Building2 className="w-4 h-4 text-[#7C8493]" />
+                      <span>TechCorp Solutions</span>
+                    </button>
+
+                    {/* Security & Local Storage */}
+                    <button
+                      type="button"
+                      onClick={() => {
+                        toast.info('Session is secured with Local Storage token.');
+                        setProfileDropdownOpen(false);
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-[#515B6F] hover:text-[#25324B] hover:bg-[#F0F3F8] transition-colors font-medium cursor-pointer"
+                    >
+                      <Shield className="w-4 h-4 text-[#7C8493]" />
+                      <span>Security & Session</span>
+                    </button>
+                  </div>
+
+                  {/* Sign Out Section */}
+                  <div className="pt-1.5 mt-1 border-t border-[#F0F2F6]">
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setProfileDropdownOpen(false);
+                        logout();
+                      }}
+                      className="w-full flex items-center gap-2.5 px-3 py-2 rounded-xl text-red-600 hover:bg-red-50 transition-colors font-bold text-xs cursor-pointer"
+                    >
+                      <LogOut className="w-4 h-4" />
+                      <span>Sign Out</span>
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-            <div className="p-4 rounded-2xl bg-[#F8F9FC] border border-[#E9ECF2] flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#25324B] flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-bold text-[#25324B]">
-                  Static Auth & LocalStorage
-                </h4>
-                <p className="text-xs text-[#515B6F] mt-0.5">
-                  Users DB, active session, tokens, and remembered preferences persisted in local storage.
-                </p>
-              </div>
-            </div>
+          {/* 3. Top Row of 5 Statistics Cards matching reference image */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-5 gap-4">
+            <StatCard
+              title="Total Companies"
+              value={stats.totalCompanies}
+              subtitle="+12 this month"
+              icon={Building2}
+            />
 
-            <div className="p-4 rounded-2xl bg-[#F8F9FC] border border-[#E9ECF2] flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#25324B] flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-bold text-[#25324B]">
-                  Role Selection
-                </h4>
-                <p className="text-xs text-[#515B6F] mt-0.5">
-                  Dynamic toggling between Recruiter & Candidate with customized copy, icons, and routing.
-                </p>
-              </div>
-            </div>
+            <StatCard
+              title="Total Jobs"
+              value={stats.totalJobs}
+              subtitle="+34 this month"
+              icon={Briefcase}
+            />
 
-            <div className="p-4 rounded-2xl bg-[#F8F9FC] border border-[#E9ECF2] flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#25324B] flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-bold text-[#25324B]">
-                  React Hook Form & Validation
-                </h4>
-                <p className="text-xs text-[#515B6F] mt-0.5">
-                  Strict email regex, minimum password lengths, confirmation matching, and alert displays.
-                </p>
-              </div>
-            </div>
+            <StatCard
+              title="Active Job Postings"
+              value={stats.activeJobs}
+              subtitle="49% of all jobs"
+              icon={Clock}
+            />
 
-            <div className="p-4 rounded-2xl bg-[#F8F9FC] border border-[#E9ECF2] flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#25324B] flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-bold text-[#25324B]">
-                  Password Show / Hide
-                </h4>
-                <p className="text-xs text-[#515B6F] mt-0.5">
-                  Interactive visibility toggles with Lucide eye icons across all auth forms.
-                </p>
-              </div>
-            </div>
+            <StatCard
+              title="Total Candidates"
+              value={stats.totalCandidates}
+              subtitle="+210 this month"
+              icon={User}
+            />
 
-            <div className="p-4 rounded-2xl bg-[#F8F9FC] border border-[#E9ECF2] flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#25324B] flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-bold text-[#25324B]">
-                  Forgot Password UI
-                </h4>
-                <p className="text-xs text-[#515B6F] mt-0.5">
-                  Modal & dedicated route workflows with simulated verification and instant reset.
-                </p>
-              </div>
-            </div>
-
-            <div className="p-4 rounded-2xl bg-[#F8F9FC] border border-[#E9ECF2] flex items-start gap-3">
-              <CheckCircle2 className="w-5 h-5 text-[#25324B] flex-shrink-0 mt-0.5" />
-              <div>
-                <h4 className="text-sm font-bold text-[#25324B]">
-                  Protected Routes & Toastify
-                </h4>
-                <p className="text-xs text-[#515B6F] mt-0.5">
-                  Guarded dashboard, redirect return paths, and toast notifications on all auth events.
-                </p>
-              </div>
-            </div>
+            <StatCard
+              title="Total Applications"
+              value={stats.totalApplications}
+              subtitle="+480 this month"
+              icon={FileText}
+            />
           </div>
-        </div>
 
-        {/* User Session Info Card */}
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E9ECF2] lg:col-span-1">
-            <h3 className="text-base font-bold text-[#25324B] mb-4 flex items-center gap-2">
-              <Database className="w-4 h-4 text-[#25324B]" />
-              <span>Current Session Details</span>
-            </h3>
+          {/* 4. Second Row: Saved Jobs Card on the Left */}
+          <div className="w-full sm:w-[calc(50%-0.5rem)] md:w-[calc(33.333%-0.7rem)] lg:w-[calc(20%-0.8rem)]">
+            <StatCard
+              title="Saved Jobs"
+              value={stats.savedJobs}
+              subtitle="Across your profile"
+              icon={Bookmark}
+            />
+          </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="flex justify-between py-2 border-b border-[#F0F2F6]">
-                <span className="text-[#7C8493]">User ID:</span>
-                <span className="font-mono text-[#25324B]">{user?.id}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-[#F0F2F6]">
-                <span className="text-[#7C8493]">Full Name:</span>
-                <span className="font-bold text-[#25324B]">{user?.fullName}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-[#F0F2F6]">
-                <span className="text-[#7C8493]">Email Address:</span>
-                <span className="font-semibold text-[#25324B]">{user?.email}</span>
-              </div>
-              <div className="flex justify-between py-2 border-b border-[#F0F2F6]">
-                <span className="text-[#7C8493]">Active Role:</span>
-                <span className="font-bold text-[#25324B] uppercase">
-                  {user?.role}
-                </span>
-              </div>
-              <div className="flex justify-between py-2">
-                <span className="text-[#7C8493]">Storage Engine:</span>
-                <span className="font-semibold text-emerald-600">
-                  Window.localStorage
-                </span>
-              </div>
+          {/* 5. Quick Actions Section (4 Dark Slate Cards) */}
+          <QuickActions
+            onPostJob={() => setIsPostModalOpen(true)}
+            onAddCompany={() => {
+              toast.info('Company Management (Module 3) is active.');
+            }}
+            onReviewCandidates={() => {
+              toast.info('Candidate Profile & Review (Module 6) is active.');
+            }}
+            onViewReports={() => {
+              toast.info('Reports & Analytics (Module 8) is active.');
+            }}
+          />
+
+          {/* 6. Main Dashboard Grid matching reference image: Dashboard Statistics (7 Cols) & Recent Activities (5 Cols) */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-stretch">
+            {/* Dashboard Statistics Bar Chart matching reference image */}
+            <div className="lg:col-span-7">
+              <DashboardCharts />
+            </div>
+
+            {/* Recent Activities Feed matching reference image */}
+            <div className="lg:col-span-5">
+              <RecentActivities />
             </div>
           </div>
 
-          {/* Next Modules Roadmap Preview */}
-          <div className="bg-white rounded-3xl p-6 shadow-sm border border-[#E9ECF2] lg:col-span-2">
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-[#25324B] flex items-center gap-2">
-                <Sparkles className="w-4 h-4 text-[#25324B]" />
-                <span>Next Modules Pipeline</span>
-              </h3>
-              <span className="text-xs text-[#7C8493]">
-                Ready for subsequent implementation
-              </span>
-            </div>
+          {/* 7. Top Hiring Companies Section */}
+          <TopCompanies />
+        </main>
+      </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-xs">
-              <div className="p-3.5 rounded-xl border border-dashed border-[#D6DDEB] bg-[#FAFAFC]">
-                <div className="font-bold text-[#25324B] mb-1">
-                  Module 2: Dashboard Statistics
-                </div>
-                <p className="text-[#515B6F]">
-                  Total companies, active jobs, candidates, and interactive quick action cards.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl border border-dashed border-[#D6DDEB] bg-[#FAFAFC]">
-                <div className="font-bold text-[#25324B] mb-1">
-                  Module 3: Company Management
-                </div>
-                <p className="text-[#515B6F]">
-                  Third-party API integration with search, filter by industry, pagination, add/edit.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl border border-dashed border-[#D6DDEB] bg-[#FAFAFC]">
-                <div className="font-bold text-[#25324B] mb-1">
-                  Module 4 & 5: Job Posting & Search
-                </div>
-                <p className="text-[#515B6F]">
-                  Create job postings, filter by location, salary range, experience, and detail view.
-                </p>
-              </div>
-
-              <div className="p-3.5 rounded-xl border border-dashed border-[#D6DDEB] bg-[#FAFAFC]">
-                <div className="font-bold text-[#25324B] mb-1">
-                  Module 6, 7 & 8: Profile & Reports
-                </div>
-                <p className="text-[#515B6F]">
-                  Candidate profiles, job applications tracker, saved jobs, and monthly analytics.
-                </p>
-              </div>
-            </div>
-          </div>
-        </div>
-      </main>
+      {/* Quick Job Creation Modal */}
+      <QuickJobModal
+        isOpen={isPostModalOpen}
+        onClose={() => setIsPostModalOpen(false)}
+        onJobCreated={handleJobCreated}
+      />
     </div>
   );
 };
