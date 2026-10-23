@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import {
   Building2,
   MapPin,
@@ -9,12 +10,31 @@ import {
   X,
   CheckCircle2,
   ArrowRight,
+  ExternalLink,
 } from 'lucide-react';
-import { INITIAL_COMPANIES } from '../../services/dashboardData';
+import { getStoredCompanies } from '../../services/companiesService';
 
 export const TopCompanies = ({ onSelectCompany }) => {
+  const navigate = useNavigate();
   const [selectedCompany, setSelectedCompany] = useState(null);
-  const [companies] = useState(INITIAL_COMPANIES.slice(0, 4));
+  const [companies, setCompanies] = useState(() => {
+    const stored = getStoredCompanies();
+    return stored.slice(0, 4);
+  });
+  const [totalCount, setTotalCount] = useState(() => getStoredCompanies().length);
+
+  // Sync companies dynamically when window or storage changes
+  useEffect(() => {
+    const handleSync = () => {
+      const stored = getStoredCompanies();
+      setCompanies(stored.slice(0, 4));
+      setTotalCount(stored.length);
+    };
+
+    handleSync();
+    window.addEventListener('storage', handleSync);
+    return () => window.removeEventListener('storage', handleSync);
+  }, []);
 
   const handleOpenCompany = (company) => {
     setSelectedCompany(company);
@@ -39,10 +59,14 @@ export const TopCompanies = ({ onSelectCompany }) => {
           </div>
         </div>
 
-        <span className="text-xs font-bold text-[#25324B] hover:underline cursor-pointer flex items-center gap-1">
-          <span>View All (248)</span>
-          <ArrowRight className="w-3.5 h-3.5" />
-        </span>
+        <button
+          type="button"
+          onClick={() => navigate('/companies')}
+          className="text-xs font-bold text-[#25324B] hover:underline cursor-pointer flex items-center gap-1 group bg-transparent border-0"
+        >
+          <span>View All ({totalCount})</span>
+          <ArrowRight className="w-3.5 h-3.5 transition-transform group-hover:translate-x-0.5" />
+        </button>
       </div>
 
       {/* 4-Card Responsive Grid matching Quick Actions symmetry */}
@@ -56,14 +80,34 @@ export const TopCompanies = ({ onSelectCompany }) => {
             <div>
               {/* Top: Logo & Rating */}
               <div className="flex items-start justify-between gap-2 mb-3">
-                <img
-                  src={comp.logo}
-                  alt={comp.name}
-                  className="w-12 h-12 rounded-xl object-cover border border-[#E9ECF2] shadow-2xs group-hover:scale-105 transition-transform"
-                />
+                <div className="w-12 h-12 rounded-xl border border-[#E9ECF2] p-1.5 flex items-center justify-center bg-white shadow-2xs group-hover:scale-105 transition-transform overflow-hidden flex-shrink-0">
+                  {comp.logo ? (
+                    <img
+                      src={comp.logo}
+                      alt={comp.name}
+                      onError={(e) => {
+                        e.target.style.display = 'none';
+                        if (e.target.nextSibling) {
+                          e.target.nextSibling.style.display = 'flex';
+                        }
+                      }}
+                      className="w-full h-full object-contain"
+                      loading="lazy"
+                    />
+                  ) : null}
+                  <div
+                    style={{ display: comp.logo ? 'none' : 'flex' }}
+                    className={`w-full h-full rounded-lg ${
+                      comp.fallbackBg || 'bg-[#25324B]'
+                    } text-white font-extrabold text-xs items-center justify-center`}
+                  >
+                    {comp.fallbackLetter || comp.name?.charAt(0) || 'C'}
+                  </div>
+                </div>
+
                 <div className="flex items-center gap-1 px-2 py-0.5 rounded-md bg-[#FFF9E6] text-[#B7791F] text-[11px] font-bold">
                   <Star className="w-3 h-3 fill-current text-amber-500" />
-                  <span>{comp.rating}</span>
+                  <span>{comp.rating || 4.8}</span>
                 </div>
               </div>
 
@@ -89,7 +133,7 @@ export const TopCompanies = ({ onSelectCompany }) => {
             {/* Bottom: Open Jobs Badge & Action */}
             <div className="pt-2.5 border-t border-[#F0F2F6] flex items-center justify-between text-xs">
               <span className="px-2.5 py-0.5 rounded-full text-[10px] font-extrabold bg-[#F0F3F8] text-[#25324B] border border-[#CCD5E4]/60">
-                {comp.openJobs} Open Roles
+                {comp.openJobs || 12} Open Roles
               </span>
               <span className="text-[11px] font-bold text-[#25324B] group-hover:underline flex items-center gap-0.5">
                 <span>View</span>
@@ -114,11 +158,24 @@ export const TopCompanies = ({ onSelectCompany }) => {
 
             {/* Modal Header */}
             <div className="flex items-start gap-4 mb-5">
-              <img
-                src={selectedCompany.logo}
-                alt={selectedCompany.name}
-                className="w-14 h-14 rounded-2xl object-cover border border-[#E9ECF2] shadow-xs"
-              />
+              <div className="w-14 h-14 rounded-2xl border border-[#E9ECF2] p-1.5 flex items-center justify-center bg-white shadow-xs flex-shrink-0 overflow-hidden">
+                {selectedCompany.logo ? (
+                  <img
+                    src={selectedCompany.logo}
+                    alt={selectedCompany.name}
+                    className="w-full h-full object-contain"
+                  />
+                ) : (
+                  <div
+                    className={`w-full h-full rounded-xl ${
+                      selectedCompany.fallbackBg || 'bg-[#25324B]'
+                    } text-white font-extrabold text-base flex items-center justify-center`}
+                  >
+                    {selectedCompany.fallbackLetter || selectedCompany.name?.charAt(0) || 'C'}
+                  </div>
+                )}
+              </div>
+
               <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   <h3 className="text-lg font-extrabold text-[#25324B]">
@@ -172,13 +229,26 @@ export const TopCompanies = ({ onSelectCompany }) => {
             </div>
 
             {/* Actions */}
-            <div className="flex justify-end gap-2 pt-3 border-t border-[#F0F2F6]">
+            <div className="flex items-center justify-between gap-2 pt-3 border-t border-[#F0F2F6]">
+              <button
+                type="button"
+                onClick={() => {
+                  const targetId = selectedCompany.id;
+                  setSelectedCompany(null);
+                  navigate(`/companies/${targetId}`);
+                }}
+                className="px-4 py-2 rounded-xl bg-[#25324B] text-white hover:bg-[#1C2638] text-xs font-bold transition-colors cursor-pointer flex items-center gap-1.5 shadow-2xs"
+              >
+                <span>View Full Company Page</span>
+                <ArrowRight className="w-3.5 h-3.5" />
+              </button>
+
               <button
                 type="button"
                 onClick={() => setSelectedCompany(null)}
                 className="px-4 py-2 rounded-xl bg-[#25324B] text-white text-xs font-bold hover:bg-[#1B2537] cursor-pointer"
               >
-                Close Window
+                Close
               </button>
             </div>
           </div>

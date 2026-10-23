@@ -9,6 +9,8 @@ import { Login } from './pages/Login';
 import { Register } from './pages/Register';
 import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
+import { Companies } from './pages/Companies';
+import { CompanyDetails } from './pages/CompanyDetails';
 
 export function App() {
   return (
@@ -33,7 +35,15 @@ export function App() {
             path="/companies"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Companies />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/companies/:id"
+            element={
+              <ProtectedRoute>
+                <CompanyDetails />
               </ProtectedRoute>
             }
           />

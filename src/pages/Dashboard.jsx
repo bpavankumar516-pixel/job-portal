@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { StatCard } from '../components/dashboard/StatCard';
@@ -7,6 +8,7 @@ import { DashboardCharts } from '../components/dashboard/DashboardCharts';
 import { RecentActivities } from '../components/dashboard/RecentActivities';
 import { TopCompanies } from '../components/dashboard/TopCompanies';
 import { QuickJobModal } from '../components/dashboard/QuickJobModal';
+import { getStoredCompanies } from '../services/companiesService';
 import {
   Building2,
   Briefcase,
@@ -40,15 +42,35 @@ export const Dashboard = () => {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, []);
 
-  // Dynamic state for stats matching the reference image
-  const [stats, setStats] = useState({
-    totalCompanies: 128,
-    totalJobs: 436,
-    activeJobs: 212,
-    totalCandidates: 2846,
-    totalApplications: 5319,
-    savedJobs: 94,
+  const navigate = useNavigate();
+
+  // Dynamic state for stats - totalCompanies dynamically fetched from companies database
+  const [stats, setStats] = useState(() => {
+    const stored = getStoredCompanies();
+    return {
+      totalCompanies: stored?.length || 32,
+      totalJobs: 436,
+      activeJobs: 212,
+      totalCandidates: 2846,
+      totalApplications: 5319,
+      savedJobs: 94,
+    };
   });
+
+  // Re-sync dynamic total companies from storage on mount
+  useEffect(() => {
+    const handleSync = () => {
+      const stored = getStoredCompanies();
+      setStats((prev) => ({
+        ...prev,
+        totalCompanies: stored?.length || 32,
+      }));
+    };
+
+    handleSync();
+    window.addEventListener('storage', handleSync);
+    return () => window.removeEventListener('storage', handleSync);
+  }, []);
 
   const displayName =
     user?.fullName ||
@@ -214,6 +236,7 @@ export const Dashboard = () => {
               value={stats.totalCompanies}
               subtitle="+12 this month"
               icon={Building2}
+              onClick={() => navigate('/companies')}
             />
 
             <StatCard
@@ -259,7 +282,7 @@ export const Dashboard = () => {
           <QuickActions
             onPostJob={() => setIsPostModalOpen(true)}
             onAddCompany={() => {
-              toast.info('Company Management (Module 3) is active.');
+              navigate('/companies');
             }}
             onReviewCandidates={() => {
               toast.info('Candidate Profile & Review (Module 6) is active.');

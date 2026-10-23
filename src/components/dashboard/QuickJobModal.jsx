@@ -1,10 +1,13 @@
-import React from 'react';
+import React, { useMemo } from 'react';
 import { useForm } from 'react-hook-form';
 import { toast } from 'react-toastify';
 import { X, Briefcase, PlusCircle, CheckCircle2 } from 'lucide-react';
 import { addQuickJob } from '../../services/dashboardData';
+import { getStoredCompanies } from '../../services/companiesService';
 
 export const QuickJobModal = ({ isOpen, onClose, onJobCreated }) => {
+  const companiesList = useMemo(() => getStoredCompanies(), []);
+
   const {
     register,
     handleSubmit,
@@ -13,12 +16,12 @@ export const QuickJobModal = ({ isOpen, onClose, onJobCreated }) => {
   } = useForm({
     defaultValues: {
       title: '',
-      companyName: 'TechCorp Solutions',
+      companyName: companiesList[0]?.name || 'Google',
       category: 'Engineering & Software',
       employmentType: 'Full-time',
       experienceLevel: 'Mid-Senior Level',
       salaryRange: '$130k - $160k',
-      location: 'San Francisco, CA (Hybrid)',
+      location: companiesList[0]?.location || 'Mountain View, CA',
       requiredSkills: 'React.js, TypeScript, Tailwind CSS',
       deadline: '2026-12-31',
       featured: true,
@@ -93,11 +96,16 @@ export const QuickJobModal = ({ isOpen, onClose, onJobCreated }) => {
               <label className="block text-xs font-bold text-[#25324B] mb-1">
                 Company Name *
               </label>
-              <input
-                type="text"
+              <select
                 {...register('companyName', { required: 'Company name is required' })}
-                className="w-full bg-[#F8F9FC] text-xs sm:text-sm font-semibold rounded-xl border border-[#E9ECF2] p-2.5 outline-none focus:border-[#25324B] focus:bg-white text-[#25324B]"
-              />
+                className="w-full bg-[#F8F9FC] text-xs sm:text-sm font-semibold rounded-xl border border-[#E9ECF2] p-2.5 outline-none focus:border-[#25324B] focus:bg-white text-[#25324B] cursor-pointer"
+              >
+                {companiesList.map((comp) => (
+                  <option key={comp.id} value={comp.name}>
+                    {comp.name} ({comp.location})
+                  </option>
+                ))}
+              </select>
             </div>
 
             <div>

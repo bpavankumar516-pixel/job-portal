@@ -175,11 +175,11 @@ export const INITIAL_JOBS = [
 export const INITIAL_ACTIVITIES = [
   {
     id: 'act_01',
-    user: 'Sarah Jenkins',
+    user: 'Pavan Kumar',
     role: 'Recruiter',
     action: 'published a new opening',
-    target: 'Senior Full Stack React Engineer',
-    company: 'TechCorp Solutions',
+    target: 'Staff Cloud Solutions Architect',
+    company: 'Google',
     timestamp: '15 minutes ago',
     type: 'job',
   },
@@ -189,27 +189,27 @@ export const INITIAL_ACTIVITIES = [
     role: 'Candidate',
     action: 'submitted an application for',
     target: 'Lead UI/UX Product Designer',
-    company: 'Innovate Labs',
+    company: 'Microsoft',
     timestamp: '1 hour ago',
     type: 'application',
   },
   {
     id: 'act_03',
-    user: 'FinPulse Global',
+    user: 'Amazon AWS',
     role: 'Company',
     action: 'verified corporate hiring credentials',
-    target: 'FinPulse Global Profile',
-    company: 'FinPulse Global',
+    target: 'Amazon Enterprise Profile',
+    company: 'Amazon',
     timestamp: '3 hours ago',
     type: 'company',
   },
   {
     id: 'act_04',
-    user: 'CyberShield Systems',
+    user: 'Pavan Kumar',
     role: 'Recruiter',
-    action: 'closed applications for',
-    target: 'Cloud Security Compliance Analyst',
-    company: 'CyberShield Systems',
+    action: 'reviewed candidates for',
+    target: 'Distributed Systems Engineer',
+    company: 'Meta',
     timestamp: '5 hours ago',
     type: 'status',
   },
@@ -218,8 +218,8 @@ export const INITIAL_ACTIVITIES = [
     user: 'David Chen',
     role: 'Candidate',
     action: 'saved job posting to bookmarks',
-    target: 'Backend Systems Architect',
-    company: 'FinPulse Global',
+    target: 'Hardware Systems Architect',
+    company: 'Apple',
     timestamp: 'Yesterday at 4:30 PM',
     type: 'saved',
   },
@@ -314,12 +314,27 @@ export const getDashboardActivities = () => {
 export const addQuickJob = (newJobData) => {
   initDashboardDB();
   const jobs = getDashboardJobs();
+  
+  // Dynamic company matching from companies database
+  let companyLogo = 'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png';
+  let companyId = 'comp_google';
+  try {
+    const storedComps = JSON.parse(localStorage.getItem('jobportal_companies_module3') || '[]');
+    const found = storedComps.find((c) => c.name === newJobData.companyName);
+    if (found) {
+      companyLogo = found.logo;
+      companyId = found.id;
+    }
+  } catch (e) {
+    // fallback
+  }
+
   const newJob = {
     id: `job_${Date.now()}`,
     title: newJobData.title,
-    companyId: 'comp_01',
-    companyName: newJobData.companyName || 'TechCorp Solutions',
-    companyLogo: 'https://images.unsplash.com/photo-1549923746-c502d488b3ea?w=120&auto=format&fit=crop&q=80',
+    companyId: companyId,
+    companyName: newJobData.companyName || 'Google',
+    companyLogo: companyLogo,
     category: newJobData.category || 'Engineering & Software',
     employmentType: newJobData.employmentType || 'Full-time',
     experienceLevel: newJobData.experienceLevel || 'Mid-Senior Level',
@@ -338,11 +353,11 @@ export const addQuickJob = (newJobData) => {
   jobs.unshift(newJob);
   localStorage.setItem(STORAGE_KEYS.JOBS, JSON.stringify(jobs));
 
-  // Also add activity
+  // Also add activity dynamically with Pavan Kumar
   const activities = getDashboardActivities();
   activities.unshift({
     id: `act_${Date.now()}`,
-    user: 'Sarah Jenkins',
+    user: 'Pavan Kumar',
     role: 'Recruiter',
     action: 'published a new opening',
     target: newJob.title,
