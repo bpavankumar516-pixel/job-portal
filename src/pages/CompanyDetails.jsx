@@ -4,6 +4,7 @@ import { useAuth } from '../context/AuthContext';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { AddEditCompanyModal } from '../components/companies/AddEditCompanyModal';
 import { DeleteCompanyModal } from '../components/companies/DeleteCompanyModal';
+import { HeaderNavbar } from '../components/common/HeaderNavbar';
 import {
   getCompanyById,
   updateCompany,
@@ -54,8 +55,6 @@ export const CompanyDetails = () => {
   const { user, role, logout } = useAuth();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
 
   // Active Tab: 'overview' | 'jobs' | 'perks' | 'tech' | 'offices'
   const [activeTab, setActiveTab] = useState('overview');
@@ -70,17 +69,6 @@ export const CompanyDetails = () => {
   // Jobs filter within this company
   const [jobSearch, setJobSearch] = useState('');
   const [selectedDept, setSelectedDept] = useState('All');
-
-  // Close profile dropdown on outside click
-  useEffect(() => {
-    const handleOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setProfileDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutside);
-    return () => document.removeEventListener('mousedown', handleOutside);
-  }, []);
 
   // Sync company data when ID changes
   useEffect(() => {
@@ -231,106 +219,42 @@ export const CompanyDetails = () => {
       {/* 2. Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1 p-5 sm:p-7 lg:p-9 max-w-[1440px] w-full mx-auto space-y-6">
-          {/* Top Bar: Breadcrumbs & Header */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-xl text-[#25324B] hover:bg-white transition-colors cursor-pointer"
-                aria-label="Open Navigation"
-              >
-                <Menu className="w-5 h-5 stroke-[2]" />
-              </button>
-
-              <div>
-                {/* Breadcrumb Path */}
-                <nav className="flex items-center gap-1.5 text-xs text-[#7C8493] font-medium mb-1">
-                  <Link to="/dashboard" className="hover:text-[#25324B] transition-colors">
-                    Dashboard
-                  </Link>
-                  <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-                  <Link to="/companies" className="hover:text-[#25324B] transition-colors">
-                    Companies
-                  </Link>
-                  <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
-                  <span className="font-bold text-[#25324B]">{company.name}</span>
-                </nav>
-
-                <h1 className="text-xl sm:text-2xl font-extrabold text-[#25324B] tracking-tight">
-                  Company Profile & Vacancies
-                </h1>
-              </div>
-            </div>
-
-            {/* Top Right User Profile & Back Button */}
-            <div className="flex items-center gap-3 self-end sm:self-center">
+          {/* Top Navbar matching common design */}
+          <HeaderNavbar
+            onToggleSidebar={() => setSidebarOpen(true)}
+            breadcrumb={
+              <nav className="flex items-center gap-1.5 text-xs text-[#7C8493] font-semibold">
+                <Link to="/dashboard" className="hover:text-[#25324B] transition-colors">
+                  Dashboard
+                </Link>
+                <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                <Link to="/companies" className="hover:text-[#25324B] transition-colors">
+                  Companies
+                </Link>
+                <ChevronRight className="w-3.5 h-3.5 text-gray-400" />
+                <span className="font-bold text-[#25324B]">{company.name}</span>
+              </nav>
+            }
+            icon={<Building2 className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2.2] text-[#25324B]" />}
+            title={company.name}
+            subtitle={`${company.industry} • ${company.location} • ${company.employees}`}
+            searchPlaceholder="Search jobs, companies..."
+            rightAction={
               <button
                 type="button"
                 onClick={() => navigate('/companies')}
-                className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-white border border-[#E9ECF2] text-xs font-bold text-[#25324B] hover:bg-gray-50 shadow-2xs transition-colors cursor-pointer"
+                className="flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white border border-[#E9ECF2] text-xs font-bold text-[#25324B] hover:bg-gray-50 shadow-2xs transition-colors cursor-pointer flex-shrink-0"
               >
                 <ArrowLeft className="w-3.5 h-3.5" />
-                <span>All Companies</span>
+                <span>Back to Companies</span>
               </button>
-
-              <button
-                type="button"
-                onClick={() => toast.info('You have 2 employer notifications.')}
-                className="p-2.5 rounded-xl bg-white border border-gray-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.04)] text-[#7C8493] hover:text-[#25324B] transition-colors relative cursor-pointer"
-                aria-label="Notifications"
-              >
-                <Bell className="w-4 h-4 stroke-[2]" />
-                <span className="w-2 h-2 rounded-full bg-red-500 absolute top-2 right-2 ring-2 ring-white" />
-              </button>
-
-              {/* Profile Badge */}
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white hover:bg-gray-50 border border-gray-200/90 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all cursor-pointer focus:outline-none"
-                >
-                  <div className="w-7 h-7 rounded-full bg-[#25324B] text-white flex items-center justify-center font-extrabold text-xs">
-                    {displayInitial}
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold text-[#25324B] leading-none">
-                      {displayName}
-                    </span>
-                    <span className="text-[10px] text-[#7C8493] font-semibold capitalize mt-0.5">
-                      {displayRole}
-                    </span>
-                  </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-[#7C8493]" />
-                </button>
-
-                {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-2.5 w-60 bg-white rounded-2xl shadow-xl border border-[#E9ECF2] p-2 z-50 animate-fadeIn text-left text-xs">
-                    <div className="p-2.5 bg-[#F8F9FC] rounded-xl mb-1">
-                      <p className="font-extrabold text-[#25324B]">{displayName}</p>
-                      <p className="text-[11px] text-[#7C8493] truncate">{user?.email || 'recruiter@jobportal.com'}</p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setProfileDropdownOpen(false);
-                        logout();
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-xl font-bold transition-colors cursor-pointer"
-                    >
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-            </div>
-          </div>
+            }
+          />
 
           {/* 3. Hero Header Card with Cover Banner & Branding */}
           <div className="bg-white rounded-3xl border border-gray-100 shadow-[0_1px_4px_rgba(0,0,0,0.03)] overflow-hidden">
             {/* Top Gradient Banner */}
-            <div className="h-36 sm:h-44 w-full bg-gradient-to-r from-[#25324B] via-[#1E293B] to-[#334155] relative p-6 flex items-end justify-end">
+            <div className="h-32 sm:h-36 w-full bg-gradient-to-r from-[#25324B] via-[#1E293B] to-[#334155] relative p-5 sm:p-6 flex items-start justify-end">
               <div className="flex items-center gap-2 relative z-10">
                 <button
                   type="button"
@@ -353,10 +277,11 @@ export const CompanyDetails = () => {
 
             {/* Bottom Profile Info */}
             <div className="px-6 sm:px-8 pb-7 pt-0 relative">
-              <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 -mt-14 mb-6">
+              <div className="flex flex-col lg:flex-row lg:items-center justify-between gap-6 mb-6">
                 {/* Logo & Identity */}
-                <div className="flex items-end gap-5">
-                  <div className="w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white border-4 border-white shadow-lg p-2.5 flex items-center justify-center flex-shrink-0 relative overflow-hidden">
+                <div className="flex flex-col sm:flex-row sm:items-center gap-4 sm:gap-5 flex-1 min-w-0">
+                  {/* Floating Logo - ONLY the logo overlaps the banner */}
+                  <div className="-mt-12 sm:-mt-16 w-24 h-24 sm:w-28 sm:h-28 rounded-3xl bg-white border-4 border-white shadow-lg p-2.5 flex items-center justify-center flex-shrink-0 relative overflow-hidden z-10">
                     {company.logo ? (
                       <img
                         src={company.logo}
@@ -377,9 +302,10 @@ export const CompanyDetails = () => {
                     )}
                   </div>
 
-                  <div className="pb-1 min-w-0">
+                  {/* Text Details - fully situated on white background */}
+                  <div className="pt-2 sm:pt-3 min-w-0 flex-1">
                     <div className="flex items-center gap-2.5 flex-wrap">
-                      <h2 className="text-2xl sm:text-3xl font-extrabold text-[#25324B] tracking-tight">
+                      <h2 className="text-2xl sm:text-3xl font-extrabold text-[#25324B] tracking-tight break-words">
                         {company.name}
                       </h2>
                       <span className="flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-blue-50 text-blue-700 border border-blue-200">
@@ -669,7 +595,10 @@ export const CompanyDetails = () => {
                             <div className="flex items-start justify-between gap-4 mb-3">
                               <div>
                                 <div className="flex items-center gap-2 flex-wrap">
-                                  <h4 className="text-sm sm:text-base font-extrabold text-[#25324B]">
+                                  <h4
+                                    onClick={() => navigate(`/jobs/${job.id}`)}
+                                    className="text-sm sm:text-base font-extrabold text-[#25324B] hover:underline cursor-pointer"
+                                  >
                                     {job.title}
                                   </h4>
                                   <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-blue-50 text-blue-700">

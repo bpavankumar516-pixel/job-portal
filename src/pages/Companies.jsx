@@ -8,6 +8,7 @@ import { CompanyCard } from '../components/companies/CompanyCard';
 import { AddEditCompanyModal } from '../components/companies/AddEditCompanyModal';
 import { CompanyDetailsModal } from '../components/companies/CompanyDetailsModal';
 import { DeleteCompanyModal } from '../components/companies/DeleteCompanyModal';
+import { HeaderNavbar } from '../components/common/HeaderNavbar';
 import {
   getStoredCompanies,
   addCompany,
@@ -34,8 +35,6 @@ export const Companies = () => {
   const navigate = useNavigate();
   const { user, role, logout } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
-  const dropdownRef = useRef(null);
 
   // Companies state from local storage
   const [companies, setCompanies] = useState(() => getStoredCompanies());
@@ -53,17 +52,6 @@ export const Companies = () => {
   const [editingCompany, setEditingCompany] = useState(null);
   const [viewingCompany, setViewingCompany] = useState(null);
   const [deletingCompany, setDeletingCompany] = useState(null);
-
-  // Close profile dropdown on outside click
-  useEffect(() => {
-    const handleOutside = (e) => {
-      if (dropdownRef.current && !dropdownRef.current.contains(e.target)) {
-        setProfileDropdownOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleOutside);
-    return () => document.removeEventListener('mousedown', handleOutside);
-  }, []);
 
   // Filter & Sort Logic
   const filteredAndSortedCompanies = useMemo(() => {
@@ -172,96 +160,25 @@ export const Companies = () => {
       {/* 2. Main Content Area */}
       <div className="flex-1 flex flex-col min-w-0">
         <main className="flex-1 p-6 sm:p-8 lg:p-10 max-w-[1440px] w-full mx-auto space-y-6">
-          {/* Top Header Row matching reference image */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-            <div className="flex items-center gap-3">
-              {/* Mobile Menu Hamburger */}
-              <button
-                type="button"
-                onClick={() => setSidebarOpen(true)}
-                className="lg:hidden p-2 rounded-xl text-[#25324B] hover:bg-white transition-colors cursor-pointer"
-                aria-label="Open Navigation"
-              >
-                <Menu className="w-5 h-5 stroke-[2]" />
-              </button>
-
-              <div>
-                <h1 className="text-2xl sm:text-3xl font-extrabold text-[#25324B] tracking-tight">
-                  Companies
-                </h1>
-                <p className="text-xs sm:text-sm text-[#7C8493] mt-1 font-medium">
-                  Discover and manage top companies and build better opportunities.
-                </p>
-              </div>
-            </div>
-
-            {/* Top Right: Notification Bell, Profile Badge & + Add Company Button */}
-            <div className="flex items-center gap-3 self-end sm:self-center">
-              {/* Notifications Icon with Red Dot */}
-              <button
-                type="button"
-                onClick={() => toast.info('You have 2 unread employer notifications.')}
-                className="p-2.5 rounded-xl bg-white border border-gray-200/80 shadow-[0_1px_2px_rgba(0,0,0,0.04)] text-[#7C8493] hover:text-[#25324B] transition-colors relative cursor-pointer"
-                aria-label="Notifications"
-              >
-                <Bell className="w-4 h-4 stroke-[2]" />
-                <span className="w-2 h-2 rounded-full bg-red-500 absolute top-2 right-2 ring-2 ring-white" />
-              </button>
-
-              {/* User Profile Badge with Dropdown */}
-              <div className="relative" ref={dropdownRef}>
-                <button
-                  type="button"
-                  onClick={() => setProfileDropdownOpen(!profileDropdownOpen)}
-                  className="flex items-center gap-2.5 px-3 py-1.5 rounded-full bg-white hover:bg-gray-50 border border-gray-200/90 shadow-[0_1px_2px_rgba(0,0,0,0.04)] transition-all cursor-pointer focus:outline-none"
-                >
-                  <div className="w-7 h-7 rounded-full bg-[#25324B] text-white flex items-center justify-center font-extrabold text-xs">
-                    {displayInitial}
-                  </div>
-                  <div className="flex flex-col text-left">
-                    <span className="text-xs font-bold text-[#25324B] leading-none">
-                      {displayName}
-                    </span>
-                    <span className="text-[10px] text-[#7C8493] font-semibold capitalize mt-0.5">
-                      {displayRole}
-                    </span>
-                  </div>
-                  <ChevronDown className="w-3.5 h-3.5 text-[#7C8493]" />
-                </button>
-
-                {profileDropdownOpen && (
-                  <div className="absolute right-0 mt-2.5 w-64 bg-white rounded-2xl shadow-xl border border-[#E9ECF2] p-2 z-50 animate-fadeIn text-left text-xs">
-                    <div className="p-2.5 bg-[#F8F9FC] rounded-xl mb-1">
-                      <p className="font-extrabold text-[#25324B]">{displayName}</p>
-                      <p className="text-[11px] text-[#7C8493] truncate">{user?.email || 'recruiter@jobportal.com'}</p>
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        setProfileDropdownOpen(false);
-                        logout();
-                      }}
-                      className="w-full flex items-center gap-2 px-3 py-2 text-red-600 hover:bg-red-50 rounded-xl font-bold transition-colors cursor-pointer"
-                    >
-                      <LogOut className="w-4 h-4" />
-                      <span>Sign Out</span>
-                    </button>
-                  </div>
-                )}
-              </div>
-
-              {/* + Add Company Button matching reference image */}
+          {/* Common Top Navbar matching reference image */}
+          <HeaderNavbar
+            onToggleSidebar={() => setSidebarOpen(true)}
+            icon={<Building2 className="w-7 h-7 sm:w-8 sm:h-8 stroke-[2.2] text-[#25324B]" />}
+            title="Companies"
+            subtitle="Discover and manage top companies and build better opportunities."
+            searchPlaceholder="Search jobs, companies..."
+            onSearch={(val) => setSearchQuery(val)}
+            rightAction={
               <button
                 type="button"
                 onClick={() => setIsAddModalOpen(true)}
-                className="flex items-center gap-2 px-5 py-2.5 rounded-xl bg-[#25324B] hover:bg-[#1C2638] text-white text-xs sm:text-sm font-bold shadow-md shadow-[#25324B]/20 transition-all cursor-pointer"
+                className="flex items-center gap-2 px-4 sm:px-5 py-2.5 rounded-xl bg-[#25324B] hover:bg-[#1C2638] text-white text-xs sm:text-sm font-bold shadow-md shadow-[#25324B]/20 transition-all cursor-pointer flex-shrink-0"
               >
                 <Plus className="w-4 h-4 stroke-[2.4]" />
                 <span>Add Company</span>
               </button>
-            </div>
-          </div>
+            }
+          />
 
           {/* 3. Four Metric Summary Cards matching reference image */}
           <CompanyStats stats={stats} />

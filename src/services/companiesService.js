@@ -746,8 +746,34 @@ const parseEmployeeCount = (empStr = '') => {
 
 // Retrieve a single company by ID (from Local Storage)
 export const getCompanyById = (id) => {
+  if (!id) return null;
   const companies = getStoredCompanies();
-  return companies.find((c) => c.id === id) || null;
+  const idStr = String(id).toLowerCase().trim();
+
+  // 1. Exact match (case-insensitive or exact string)
+  const exact = companies.find(
+    (c) => String(c.id).toLowerCase() === idStr || String(c.id) === String(id)
+  );
+  if (exact) return exact;
+
+  // 2. Match by company name or slug (e.g., "google" -> "comp_google")
+  const byName = companies.find(
+    (c) =>
+      c.name.toLowerCase() === idStr ||
+      c.name.toLowerCase().replace(/\s+/g, '-') === idStr ||
+      `comp_${c.name.toLowerCase()}` === idStr ||
+      idStr.replace('comp_', '') === c.name.toLowerCase() ||
+      c.name.toLowerCase().includes(idStr)
+  );
+  if (byName) return byName;
+
+  // 3. Numeric index match (e.g. "1" -> 1st company Google)
+  const num = parseInt(idStr.replace(/\D/g, ''), 10);
+  if (!isNaN(num) && num > 0 && companies[num - 1]) {
+    return companies[num - 1];
+  }
+
+  return companies[0] || null;
 };
 
 // Company-specific real-time job openings generator

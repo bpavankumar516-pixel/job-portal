@@ -11,6 +11,8 @@ import { ForgotPassword } from './pages/ForgotPassword';
 import { Dashboard } from './pages/Dashboard';
 import { Companies } from './pages/Companies';
 import { CompanyDetails } from './pages/CompanyDetails';
+import { Jobs } from './pages/Jobs';
+import { JobDetails } from './pages/JobDetails';
 
 export function App() {
   return (
@@ -51,7 +53,15 @@ export function App() {
             path="/jobs"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Jobs />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/jobs/:id"
+            element={
+              <ProtectedRoute>
+                <JobDetails />
               </ProtectedRoute>
             }
           />

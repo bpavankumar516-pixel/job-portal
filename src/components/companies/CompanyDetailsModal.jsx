@@ -44,7 +44,7 @@ export const CompanyDetailsModal = ({ isOpen, onClose, company }) => {
 
           <div className="flex-1 min-w-0">
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-xl font-extrabold text-[#25324B] truncate">
+              <h3 className="text-xl sm:text-2xl font-extrabold text-[#25324B] break-words">
                 {company.name}
               </h3>
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700 border border-emerald-200">
