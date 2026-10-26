@@ -1,12 +1,12 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard,
   Building2,
   Briefcase,
   Search,
-  User,
+  Users,
   FileText,
   Bookmark,
   BarChart3,
@@ -16,6 +16,7 @@ import {
 
 export const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout, role } = useAuth();
+  const location = useLocation();
 
   const navItems = [
     {
@@ -39,9 +40,9 @@ export const Sidebar = ({ isOpen, onClose }) => {
       to: '/job-search',
     },
     {
-      label: 'Candidate Profile',
-      icon: User,
-      to: '/candidate-profile',
+      label: 'Candidates',
+      icon: Users,
+      to: '/candidates',
     },
     {
       label: 'Applications',
@@ -109,30 +110,30 @@ export const Sidebar = ({ isOpen, onClose }) => {
           <nav className="space-y-1.5">
             {navItems.map((item) => {
               const Icon = item.icon;
+              const isItemActive =
+                location.pathname === item.to ||
+                (item.to === '/candidates' &&
+                  (location.pathname.startsWith('/candidates') || location.pathname.startsWith('/candidate-profile'))) ||
+                (item.to === '/companies' && location.pathname.startsWith('/companies')) ||
+                (item.to === '/jobs' && location.pathname.startsWith('/jobs'));
 
               return (
                 <NavLink
                   key={item.label}
                   to={item.to}
                   onClick={() => onClose && onClose()}
-                  className={({ isActive }) =>
-                    `flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all group ${
-                      isActive
-                        ? 'bg-white text-[#25324B] shadow-sm font-bold'
-                        : 'text-slate-300 hover:text-white hover:bg-white/10'
-                    }`
-                  }
+                  className={`flex items-center gap-3.5 px-4 py-3 rounded-xl text-sm font-semibold transition-all group ${
+                    isItemActive
+                      ? 'bg-white text-[#25324B] shadow-sm font-bold'
+                      : 'text-slate-300 hover:text-white hover:bg-white/10'
+                  }`}
                 >
-                  {({ isActive }) => (
-                    <>
-                      <Icon
-                        className={`w-5 h-5 transition-transform group-hover:scale-105 ${
-                          isActive ? 'text-[#25324B]' : 'text-slate-300 group-hover:text-white'
-                        }`}
-                      />
-                      <span>{item.label}</span>
-                    </>
-                  )}
+                  <Icon
+                    className={`w-5 h-5 transition-transform group-hover:scale-105 ${
+                      isItemActive ? 'text-[#25324B]' : 'text-slate-300 group-hover:text-white'
+                    }`}
+                  />
+                  <span>{item.label}</span>
                 </NavLink>
               );
             })}

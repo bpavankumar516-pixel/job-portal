@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useParams, useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useCandidates } from '../context/CandidatesContext';
 import { Sidebar } from '../components/dashboard/Sidebar';
 import { HeaderNavbar } from '../components/common/HeaderNavbar';
 import { AddEditJobModal } from '../components/jobs/AddEditJobModal';
@@ -48,6 +49,7 @@ export const JobDetails = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const { user, role } = useAuth();
+  const { candidates, selectCandidate } = useCandidates();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [job, setJob] = useState(() => getJobById(id));
@@ -423,7 +425,7 @@ export const JobDetails = () => {
               { id: 'overview', label: 'Role Overview & Scope', icon: FileText },
               {
                 id: 'applicants',
-                label: `Candidate Pipeline (${enriched?.applicantsList?.length || 4})`,
+                label: `Candidate Pipeline (${candidates.length > 0 ? candidates.length : 4})`,
                 icon: Users,
               },
               { id: 'company', label: `About ${job.companyName}`, icon: Building2 },
@@ -555,47 +557,73 @@ export const JobDetails = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {enriched?.applicantsList?.map((cand) => (
-                            <tr key={cand.id} className="hover:bg-[#F8F9FC]/60 transition-colors">
-                              <td className="py-3 px-3">
-                                <div className="flex items-center gap-2.5">
-                                  <div className="w-8 h-8 rounded-full bg-[#25324B] text-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                                    {cand.name.charAt(0)}
+                          {(candidates.length > 0 ? candidates.slice(0, 6) : (enriched?.applicantsList || [])).map((cand, idx) => {
+                            const stageList = [
+                              { stage: 'Shortlisted', color: 'bg-blue-50 text-blue-700 border-blue-200' },
+                              { stage: 'Interview', color: 'bg-purple-50 text-purple-700 border-purple-200' },
+                              { stage: 'Applied', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
+                              { stage: 'Under Review', color: 'bg-amber-50 text-amber-700 border-amber-200' },
+                            ];
+                            const currentStage = stageList[idx % stageList.length];
+                            return (
+                              <tr key={cand.id || idx} className="hover:bg-[#F8F9FC]/60 transition-colors">
+                                <td className="py-3 px-3">
+                                  <div className="flex items-center gap-2.5">
+                                    <div className="w-8 h-8 rounded-full border border-gray-200 overflow-hidden bg-white flex items-center justify-center font-bold text-xs flex-shrink-0">
+                                      {cand.avatar ? (
+                                        <img src={cand.avatar} alt={cand.name} className="w-full h-full object-cover" />
+                                      ) : (
+                                        <span>{cand.name.charAt(0)}</span>
+                                      )}
+                                    </div>
+                                    <div className="min-w-0">
+                                      <button
+                                        type="button"
+                                        onClick={() => {
+                                          selectCandidate(cand);
+                                          navigate(`/candidates/${cand.id}`);
+                                        }}
+                                        className="font-bold text-[#25324B] hover:text-blue-600 block truncate text-left cursor-pointer"
+                                      >
+                                        {cand.name}
+                                      </button>
+                                      <span className="text-[11px] text-[#7C8493] block truncate">{cand.email}</span>
+                                    </div>
                                   </div>
-                                  <div>
-                                    <span className="font-bold text-[#25324B] block">{cand.name}</span>
-                                    <span className="text-[11px] text-[#7C8493] block">{cand.email}</span>
-                                  </div>
-                                </div>
-                              </td>
+                                </td>
 
-                              <td className="py-3 px-3 font-medium text-gray-600">
-                                {cand.experience}
-                              </td>
+                                <td className="py-3 px-3 font-medium text-gray-600">
+                                  {cand.experienceYears || cand.experience || '2+ Years'}
+                                </td>
 
-                              <td className="py-3 px-3">
-                                <span className="font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md text-[11px]">
-                                  {cand.matchScore}
-                                </span>
-                              </td>
+                                <td className="py-3 px-3">
+                                  <span className="font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md text-[11px]">
+                                    {cand.matchScore ? `${cand.matchScore}%` : '85%'}
+                                  </span>
+                                </td>
 
-                              <td className="py-3 px-3">
-                                <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${cand.stageColor}`}>
-                                  {cand.stage}
-                                </span>
-                              </td>
+                                <td className="py-3 px-3">
+                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${currentStage.color}`}>
+                                    {currentStage.stage}
+                                  </span>
+                                </td>
 
-                              <td className="py-3 px-3 text-right">
-                                <button
-                                  type="button"
-                                  onClick={() => toast.info(`Reviewing candidate profile for ${cand.name}`)}
-                                  className="text-xs font-bold text-[#25324B] hover:underline cursor-pointer"
-                                >
-                                  Review
-                                </button>
-                              </td>
-                            </tr>
-                          ))}
+                                <td className="py-3 px-3 text-right">
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      selectCandidate(cand);
+                                      navigate(`/candidates/${cand.id}`);
+                                    }}
+                                    className="px-3 py-1 rounded-lg bg-[#25324B] hover:bg-[#1C2638] text-white text-[11px] font-bold transition-all cursor-pointer inline-flex items-center gap-1"
+                                  >
+                                    <span>View Profile</span>
+                                    <span>→</span>
+                                  </button>
+                                </td>
+                              </tr>
+                            );
+                          })}
                         </tbody>
                       </table>
                     </div>

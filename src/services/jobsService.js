@@ -4,7 +4,7 @@ import { getStoredCompanies } from './companiesService';
 const JOBS_DB_KEY = 'jobportal_jobs_module4';
 
 export const INITIAL_MOCK_JOBS = [
-  // Page 1: Exact 10 jobs matching reference image
+  // Page 1: Exact 10 jobs matching reference image media_1792990242598_f8bde101.png
   {
     id: 'job_01',
     title: 'Frontend Developer',
@@ -16,19 +16,23 @@ export const INITIAL_MOCK_JOBS = [
     fallbackBg: 'bg-red-500',
     category: 'IT & Software',
     employmentType: 'Full Time',
+    workplaceType: 'On-site',
     location: 'Bengaluru, KA',
     salaryRange: '$80k - $120k',
+    minSalary: 80000,
+    maxSalary: 120000,
     experience: '2-5 years',
     status: 'Open',
     applicationsCount: 48,
     featured: true,
+    skills: ['React', 'TypeScript', 'Tailwind CSS', 'JavaScript', 'HTML5', 'Next.js'],
     description: 'Looking for an experienced Frontend Engineer with deep expertise in React.js, Tailwind CSS, TypeScript and high-performance Web APIs.',
     requirements: ['2+ years of React development', 'Solid TypeScript skills', 'Experience with responsive UI and state management'],
-    createdAt: '2026-10-21T08:00:00.000Z',
+    createdAt: '2026-10-24T08:00:00.000Z',
   },
   {
     id: 'job_02',
-    title: 'Backend Developer',
+    title: 'Software Engineer',
     postedTime: 'Posted 3 days ago',
     companyName: 'Microsoft',
     companyIndustry: 'Technology',
@@ -37,78 +41,94 @@ export const INITIAL_MOCK_JOBS = [
     fallbackBg: 'bg-blue-600',
     category: 'IT & Software',
     employmentType: 'Full Time',
+    workplaceType: 'Hybrid',
     location: 'Hyderabad, TS',
     salaryRange: '$70k - $110k',
+    minSalary: 70000,
+    maxSalary: 110000,
     experience: '3-6 years',
     status: 'Open',
     applicationsCount: 72,
     featured: true,
+    skills: ['C#', '.NET Core', 'Azure', 'SQL Server', 'Microservices'],
     description: 'Build mission-critical distributed cloud services, microservices and RESTful / gRPC APIs on Azure infrastructure.',
     requirements: ['Strong knowledge of Node.js / C# / Python', 'Experience with relational and NoSQL databases', 'Cloud architecture skills'],
-    createdAt: '2026-10-20T09:30:00.000Z',
+    createdAt: '2026-10-23T09:30:00.000Z',
   },
   {
     id: 'job_03',
-    title: 'UI/UX Designer',
+    title: 'Backend Developer',
     postedTime: 'Posted 4 days ago',
+    companyName: 'Amazon',
+    companyIndustry: 'E-commerce',
+    companyLogo: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg',
+    fallbackLetter: 'A',
+    fallbackBg: 'bg-orange-500',
+    category: 'IT & Software',
+    employmentType: 'Full Time',
+    workplaceType: 'Hybrid',
+    location: 'Seattle, WA',
+    salaryRange: '$90k - $140k',
+    minSalary: 90000,
+    maxSalary: 140000,
+    experience: '2-5 years',
+    status: 'Open',
+    applicationsCount: 38,
+    featured: true,
+    skills: ['Java', 'Python', 'AWS', 'DynamoDB', 'REST APIs', 'Docker'],
+    description: 'Design and operate massively scalable cloud infrastructure and server-side APIs powering global retail operations.',
+    requirements: ['Proficiency in Java, Python, or Go', 'Strong cloud infrastructure knowledge (AWS)', 'Distributed system architecture'],
+    createdAt: '2026-10-22T14:15:00.000Z',
+  },
+  {
+    id: 'job_04',
+    title: 'DevOps Engineer',
+    postedTime: 'Posted 5 days ago',
+    companyName: 'Meta',
+    companyIndustry: 'Social Media',
+    companyLogo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg',
+    fallbackLetter: 'M',
+    fallbackBg: 'bg-blue-500',
+    category: 'DevOps',
+    employmentType: 'Full Time',
+    workplaceType: 'Remote',
+    location: 'San Francisco, CA',
+    salaryRange: '$100k - $150k',
+    minSalary: 100000,
+    maxSalary: 150000,
+    experience: '3-6 years',
+    status: 'Open',
+    applicationsCount: 55,
+    featured: true,
+    skills: ['Kubernetes', 'Docker', 'Terraform', 'CI/CD', 'Linux', 'AWS'],
+    description: 'Drive reliability, scalability, and automated deployments for global social connection platforms and data center systems.',
+    requirements: ['3+ years in DevOps / SRE', 'Expertise with Kubernetes, Docker & CI/CD', 'Strong infrastructure-as-code experience'],
+    createdAt: '2026-10-21T16:00:00.000Z',
+  },
+  {
+    id: 'job_05',
+    title: 'UI/UX Designer',
+    postedTime: 'Posted 6 days ago',
     companyName: 'Apple',
     companyIndustry: 'Technology',
     companyLogo: 'https://upload.wikimedia.org/wikipedia/commons/f/fa/Apple_logo_black.svg',
     fallbackLetter: 'A',
     fallbackBg: 'bg-gray-800',
     category: 'Design',
-    employmentType: 'Full Time',
-    location: 'Mumbai, MH',
+    employmentType: 'Part Time',
+    workplaceType: 'Hybrid',
+    location: 'Austin, TX',
     salaryRange: '$60k - $90k',
-    experience: '2-5 years',
+    minSalary: 60000,
+    maxSalary: 90000,
+    experience: '2-4 years',
     status: 'Open',
     applicationsCount: 61,
     featured: false,
+    skills: ['Figma', 'UI Design', 'UX Research', 'Design Systems', 'Prototyping'],
     description: 'Create intuitive, elegant user interfaces and delightful digital experiences that set global industry design standards.',
     requirements: ['Expertise in Figma & design systems', 'Proven portfolio in user-centered product design', 'Strong prototyping abilities'],
-    createdAt: '2026-10-19T11:00:00.000Z',
-  },
-  {
-    id: 'job_04',
-    title: 'Data Scientist',
-    postedTime: 'Posted 5 days ago',
-    companyName: 'Amazon',
-    companyIndustry: 'E-commerce',
-    companyLogo: 'https://upload.wikimedia.org/wikipedia/commons/a/a9/Amazon_logo.svg',
-    fallbackLetter: 'A',
-    fallbackBg: 'bg-orange-500',
-    category: 'Data Science',
-    employmentType: 'Full Time',
-    location: 'Seattle, WA',
-    salaryRange: '$90k - $140k',
-    experience: '3-7 years',
-    status: 'Open',
-    applicationsCount: 38,
-    featured: false,
-    description: 'Leverage machine learning algorithms and predictive analytics to optimize customer recommendations and supply chain logistics.',
-    requirements: ['Proficiency in Python, SQL, and Pandas', 'Strong background in Machine Learning / Deep Learning', 'Experience with AWS SageMaker'],
-    createdAt: '2026-10-18T14:15:00.000Z',
-  },
-  {
-    id: 'job_05',
-    title: 'Product Manager',
-    postedTime: 'Posted 6 days ago',
-    companyName: 'Meta',
-    companyIndustry: 'Social Media',
-    companyLogo: 'https://upload.wikimedia.org/wikipedia/commons/7/7b/Meta_Platforms_Inc._logo.svg',
-    fallbackLetter: 'M',
-    fallbackBg: 'bg-blue-500',
-    category: 'Product',
-    employmentType: 'Full Time',
-    location: 'San Francisco, CA',
-    salaryRange: '$100k - $150k',
-    experience: '4-8 years',
-    status: 'Open',
-    applicationsCount: 55,
-    featured: true,
-    description: 'Drive vision, product strategy, and roadmaps for next-generation social connectivity and collaborative creator tools.',
-    requirements: ['4+ years in digital product management', 'Data-driven mindset with A/B testing experience', 'Strong cross-functional leadership'],
-    createdAt: '2026-10-17T16:00:00.000Z',
+    createdAt: '2026-10-20T11:00:00.000Z',
   },
   {
     id: 'job_06',
@@ -513,21 +533,137 @@ export const INITIAL_MOCK_JOBS = [
   },
 ];
 
+// Generate full realistic 124 jobs based on companies in companiesService.js
+export const generate124Jobs = (baseJobs = INITIAL_MOCK_JOBS) => {
+  const allCompanies = getStoredCompanies();
+  const jobs = [...baseJobs];
+
+  const titlesAndSkills = [
+    { title: 'Full Stack Developer', category: 'IT & Software', skills: ['React', 'Node.js', 'MongoDB', 'Express', 'TypeScript'], minSalary: 85000, maxSalary: 130000, salaryRange: '$85k - $130k', exp: '2-5 years' },
+    { title: 'Cloud Solutions Architect', category: 'IT & Software', skills: ['AWS', 'Azure', 'GCP', 'Architecture', 'Kubernetes'], minSalary: 120000, maxSalary: 180000, salaryRange: '$120k - $180k', exp: '5+ years' },
+    { title: 'Data Scientist', category: 'Data Science', skills: ['Python', 'Pandas', 'Machine Learning', 'SQL', 'TensorFlow'], minSalary: 95000, maxSalary: 145000, salaryRange: '$95k - $145k', exp: '3-6 years' },
+    { title: 'Machine Learning Engineer', category: 'Data Science', skills: ['PyTorch', 'Python', 'MLOps', 'Deep Learning', 'Computer Vision'], minSalary: 110000, maxSalary: 165000, salaryRange: '$110k - $165k', exp: '3-7 years' },
+    { title: 'Product Manager', category: 'Product', skills: ['Roadmapping', 'Agile', 'User Stories', 'A/B Testing', 'Analytics'], minSalary: 100000, maxSalary: 155000, salaryRange: '$100k - $155k', exp: '4-8 years' },
+    { title: 'QA Automation Engineer', category: 'QA & Testing', skills: ['Selenium', 'Cypress', 'Playwright', 'Jest', 'Postman'], minSalary: 65000, maxSalary: 105000, salaryRange: '$65k - $105k', exp: '2-5 years' },
+    { title: 'Cybersecurity Analyst', category: 'Security', skills: ['SIEM', 'Penetration Testing', 'Network Security', 'Firewalls', 'Compliance'], minSalary: 85000, maxSalary: 135000, salaryRange: '$85k - $135k', exp: '3-6 years' },
+    { title: 'Mobile App Developer', category: 'IT & Software', skills: ['React Native', 'Flutter', 'iOS', 'Android', 'Swift'], minSalary: 75000, maxSalary: 125000, salaryRange: '$75k - $125k', exp: '2-5 years' },
+    { title: 'Database Administrator', category: 'IT & Software', skills: ['PostgreSQL', 'Oracle', 'MySQL', 'Performance Tuning', 'Backup'], minSalary: 80000, maxSalary: 120000, salaryRange: '$80k - $120k', exp: '3-6 years' },
+    { title: 'Technical Product Owner', category: 'Product', skills: ['Scrum', 'Backlog Refinement', 'Jira', 'API Design', 'Stakeholder Mgmt'], minSalary: 90000, maxSalary: 140000, salaryRange: '$90k - $140k', exp: '3-6 years' },
+    { title: 'Systems Engineer', category: 'IT & Software', skills: ['Linux', 'Bash', 'Networking', 'VMware', 'Troubleshooting'], minSalary: 70000, maxSalary: 110000, salaryRange: '$70k - $110k', exp: '2-5 years' },
+    { title: 'Business Analyst', category: 'Business', skills: ['Requirement Gathering', 'SQL', 'Tableau', 'PowerBI', 'Excel'], minSalary: 65000, maxSalary: 100000, salaryRange: '$65k - $100k', exp: '1-3 years' },
+    { title: 'Salesforce Developer', category: 'IT & Software', skills: ['Apex', 'Visualforce', 'LWC', 'Sales Cloud', 'SOQL'], minSalary: 80000, maxSalary: 125000, salaryRange: '$80k - $125k', exp: '2-5 years' },
+    { title: 'Site Reliability Engineer (SRE)', category: 'DevOps', skills: ['Prometheus', 'Grafana', 'Go', 'Incident Response', 'SLOs'], minSalary: 105000, maxSalary: 160000, salaryRange: '$105k - $160k', exp: '3-6 years' },
+    { title: 'Graphic & Brand Designer', category: 'Design', skills: ['Illustrator', 'Photoshop', 'Brand Strategy', 'Typography', 'Figma'], minSalary: 55000, maxSalary: 85000, salaryRange: '$55k - $85k', exp: '1-4 years' }
+  ];
+
+  const locations = [
+    'Bengaluru, KA', 'Hyderabad, TS', 'Mumbai, MH', 'Pune, MH', 'Delhi, DL',
+    'Seattle, WA', 'San Francisco, CA', 'Austin, TX', 'New York, NY', 'Mountain View, CA',
+    'Redmond, WA', 'London, UK', 'Remote', 'Chennai, TN', 'Boston, MA'
+  ];
+
+  const types = ['Full Time', 'Full Time', 'Full Time', 'Part Time', 'Contract', 'Internship'];
+  const workplaces = ['On-site', 'Hybrid', 'Remote', 'Hybrid', 'On-site'];
+
+  let counter = jobs.length + 1;
+  while (jobs.length < 124) {
+    const comp = allCompanies[(counter * 7) % (allCompanies.length || 1)] || {
+      name: 'Google',
+      industry: 'Technology',
+      logo: 'https://www.gstatic.com/images/branding/product/2x/googleg_48dp.png',
+      fallbackLetter: 'G',
+      fallbackBg: 'bg-red-500'
+    };
+    const roleInfo = titlesAndSkills[counter % titlesAndSkills.length];
+    const loc = locations[(counter * 3) % locations.length];
+    const type = types[counter % types.length];
+    const work = workplaces[counter % workplaces.length];
+    const postedDays = (counter % 14) + 1;
+    const padId = counter.toString().padStart(2, '0');
+
+    jobs.push({
+      id: `job_${padId}`,
+      title: roleInfo.title,
+      postedTime: `Posted ${postedDays} days ago`,
+      companyName: comp.name,
+      companyIndustry: comp.industry || 'Technology',
+      companyLogo: comp.logo,
+      fallbackLetter: comp.name?.charAt(0) || 'C',
+      fallbackBg: comp.fallbackBg || 'bg-[#25324B]',
+      category: roleInfo.category,
+      employmentType: type,
+      workplaceType: work,
+      location: loc,
+      salaryRange: roleInfo.salaryRange,
+      minSalary: roleInfo.minSalary,
+      maxSalary: roleInfo.maxSalary,
+      experience: roleInfo.exp,
+      status: counter % 9 === 0 ? 'Closed' : 'Open',
+      applicationsCount: 15 + (counter * 3) % 75,
+      featured: counter % 5 === 0,
+      skills: roleInfo.skills,
+      description: `Opportunity to join ${comp.name} as a ${roleInfo.title}. Deliver top tier solutions, collaborate across functions, and advance digital transformation.`,
+      requirements: [`Strong background in ${roleInfo.skills.slice(0, 2).join(' & ')}`, 'Strong team communication', 'Passionate about engineering excellence'],
+      createdAt: new Date(Date.now() - postedDays * 86400000).toISOString(),
+    });
+    counter++;
+  }
+
+  return jobs.slice(0, 124);
+};
+
+// Saved Jobs Bookmark LocalStorage Persistence
+const SAVED_JOBS_KEY = 'jobportal_saved_job_ids';
+
+export const getSavedJobIds = () => {
+  try {
+    const data = localStorage.getItem(SAVED_JOBS_KEY);
+    return data ? JSON.parse(data) : ['job_01', 'job_03'];
+  } catch {
+    return ['job_01', 'job_03'];
+  }
+};
+
+export const toggleSavedJobId = (jobId) => {
+  try {
+    const current = getSavedJobIds();
+    const index = current.indexOf(jobId);
+    let updated;
+    if (index >= 0) {
+      updated = current.filter((id) => id !== jobId);
+    } else {
+      updated = [...current, jobId];
+    }
+    localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(updated));
+    return updated.includes(jobId);
+  } catch {
+    return false;
+  }
+};
+
+export const isJobSaved = (jobId) => {
+  const current = getSavedJobIds();
+  return current.includes(jobId);
+};
+
 // Initialize Jobs in LocalStorage
 export const initJobsDB = () => {
   try {
     const existing = localStorage.getItem(JOBS_DB_KEY);
     if (!existing) {
-      localStorage.setItem(JOBS_DB_KEY, JSON.stringify(INITIAL_MOCK_JOBS));
+      const fullList = generate124Jobs();
+      localStorage.setItem(JOBS_DB_KEY, JSON.stringify(fullList));
     } else {
       const parsed = JSON.parse(existing);
-      // Re-seed if previously had fewer jobs to ensure exact 24 match
-      if (!Array.isArray(parsed) || parsed.length < 24) {
-        localStorage.setItem(JOBS_DB_KEY, JSON.stringify(INITIAL_MOCK_JOBS));
+      // Re-seed if previously had fewer than 124 jobs or outdated structure
+      if (!Array.isArray(parsed) || parsed.length < 124 || !parsed[0]?.workplaceType) {
+        const fullList = generate124Jobs();
+        localStorage.setItem(JOBS_DB_KEY, JSON.stringify(fullList));
       }
     }
   } catch (e) {
-    localStorage.setItem(JOBS_DB_KEY, JSON.stringify(INITIAL_MOCK_JOBS));
+    const fullList = generate124Jobs();
+    localStorage.setItem(JOBS_DB_KEY, JSON.stringify(fullList));
   }
 };
 

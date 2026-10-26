@@ -13,12 +13,17 @@ import { Companies } from './pages/Companies';
 import { CompanyDetails } from './pages/CompanyDetails';
 import { Jobs } from './pages/Jobs';
 import { JobDetails } from './pages/JobDetails';
+import { JobSearch } from './pages/JobSearch';
+import { CandidateProfile } from './pages/CandidateProfile';
+import { Candidates } from './pages/Candidates';
+import { CandidatesProvider } from './context/CandidatesContext';
 
 export function App() {
   return (
     <Router>
       <AuthProvider>
-        <Routes>
+        <CandidatesProvider>
+          <Routes>
           {/* Public Authentication Routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/register" element={<Register />} />
@@ -66,15 +71,47 @@ export function App() {
             }
           />
           <Route
-            path="/applications"
+            path="/job-search"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <JobSearch />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/candidate-profile"
+            element={
+              <ProtectedRoute>
+                <CandidateProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/candidate-profile/:id"
+            element={
+              <ProtectedRoute>
+                <CandidateProfile />
               </ProtectedRoute>
             }
           />
           <Route
             path="/candidates"
+            element={
+              <ProtectedRoute>
+                <Candidates />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/candidates/:id"
+            element={
+              <ProtectedRoute>
+                <CandidateProfile />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/applications"
             element={
               <ProtectedRoute>
                 <Dashboard />
@@ -119,6 +156,7 @@ export function App() {
           theme="light"
           toastClassName="font-sans text-sm rounded-xl shadow-lg border border-gray-100"
         />
+        </CandidatesProvider>
       </AuthProvider>
     </Router>
   );
