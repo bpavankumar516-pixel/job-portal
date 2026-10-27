@@ -9,6 +9,7 @@ import {
   getCategoryBadgeStyle,
   getTypeBadgeStyle,
 } from '../services/jobsService';
+import { recordActivity } from '../services/activityService';
 import {
   Search,
   MapPin,
@@ -95,6 +96,13 @@ export const JobSearch = () => {
     const isNowSaved = toggleSavedJobId(jobId);
     setSavedJobIds(getSavedJobIds());
     if (isNowSaved) {
+      recordActivity({
+        type: 'bookmark',
+        title: 'Job saved to bookmarks',
+        meta: `${jobTitle}`,
+        link: `/jobs/${jobId}`,
+        iconType: 'bookmark',
+      });
       toast.success(`"${jobTitle}" saved to bookmarks!`, {
         icon: '🔖',
       });
@@ -568,7 +576,8 @@ export const JobSearch = () => {
                   return (
                     <div
                       key={job.id}
-                      className="bg-white rounded-2xl border border-gray-200/80 hover:border-[#CCD5E4] hover:shadow-[0_4px_16px_rgba(37,50,75,0.06)] transition-all p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group text-left relative"
+                      onClick={() => navigate(`/jobs/${job.id}`)}
+                      className="bg-white rounded-2xl border border-gray-200/80 hover:border-[#25324B]/30 hover:shadow-[0_6px_20px_rgba(37,50,75,0.08)] transition-all p-5 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 group text-left relative cursor-pointer"
                     >
                       {/* Left: Company Logo + Title + Company + Metadata Chips */}
                       <div className="flex items-start gap-4 flex-1 min-w-0">
@@ -630,7 +639,10 @@ export const JobSearch = () => {
                         <div className="flex items-center gap-2">
                           <button
                             type="button"
-                            onClick={() => handleToggleBookmark(job.id, job.title)}
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleToggleBookmark(job.id, job.title);
+                            }}
                             className="p-1 text-gray-400 hover:text-[#25324B] transition-colors cursor-pointer"
                             title={isSaved ? 'Remove bookmark' : 'Bookmark job'}
                           >

@@ -33,13 +33,13 @@ export const CompanyCard = ({
   }, [menuOpen]);
 
   return (
-    <div className="bg-white rounded-2xl p-5 border border-gray-100/90 shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:border-[#CCD5E4] hover:shadow-xs transition-all duration-200 flex flex-col justify-between group">
+    <div
+      onClick={() => onViewDetails(company)}
+      className="bg-white rounded-2xl p-5 border border-gray-100/90 shadow-[0_1px_3px_rgba(0,0,0,0.03)] hover:border-[#CCD5E4] hover:shadow-[0_4px_16px_rgba(37,50,75,0.06)] transition-all duration-200 flex flex-col justify-between group cursor-pointer"
+    >
       <div>
         {/* Top Header: Logo, Company Name, Active Badge & Industry */}
-        <div
-          onClick={() => onViewDetails(company)}
-          className="flex items-start gap-3.5 mb-3.5 cursor-pointer"
-        >
+        <div className="flex items-start gap-3.5 mb-3.5">
           {/* Company Logo with Fallback */}
           <div className="w-12 h-12 rounded-xl border border-[#E9ECF2] p-1.5 flex items-center justify-center bg-white shadow-2xs flex-shrink-0 group-hover:scale-105 transition-transform overflow-hidden">
             {!imgError && company.logo ? (
@@ -126,10 +126,13 @@ export const CompanyCard = ({
         </button>
 
         {/* More Actions Dropdown Menu */}
-        <div className="relative" ref={menuRef}>
+        <div className="relative" ref={menuRef} onClick={(e) => e.stopPropagation()}>
           <button
             type="button"
-            onClick={() => setMenuOpen(!menuOpen)}
+            onClick={(e) => {
+              e.stopPropagation();
+              setMenuOpen(!menuOpen);
+            }}
             className="p-1.5 rounded-lg text-[#7C8493] hover:text-[#25324B] hover:bg-[#F0F3F8] transition-colors cursor-pointer"
             aria-label="More options"
           >

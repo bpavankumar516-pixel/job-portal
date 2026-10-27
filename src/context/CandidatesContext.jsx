@@ -9,6 +9,7 @@ import {
   getShortlistedCandidateIds,
   toggleCandidateShortlistStorage,
 } from '../services/candidatesService';
+import { recordActivity } from '../services/activityService';
 import { toast } from 'react-toastify';
 
 const CandidatesContext = createContext(null);
@@ -100,6 +101,13 @@ export const CandidatesProvider = ({ children }) => {
     try {
       const newCand = await createDummyJsonCandidate(formData);
       setCandidates((prev) => [newCand, ...prev]);
+      recordActivity({
+        type: 'candidate',
+        title: 'New candidate registered',
+        meta: `${newCand.name} · ${newCand.role} (${newCand.location})`,
+        link: `/candidates/${newCand.id}`,
+        iconType: 'user-plus',
+      });
       toast.success(`Candidate ${newCand.name} created successfully!`, {
         icon: '👤',
       });
@@ -121,6 +129,13 @@ export const CandidatesProvider = ({ children }) => {
       setSelectedCandidate((prev) =>
         prev && (prev.id === Number(id) || prev.id === id) ? { ...prev, ...updated } : prev
       );
+      recordActivity({
+        type: 'candidate',
+        title: 'Candidate profile updated',
+        meta: `${updatedFields.name || updated.name || 'Candidate'} · ${updatedFields.role || updated.role || 'Profile'}`,
+        link: `/candidates/${id}`,
+        iconType: 'edit',
+      });
       toast.success(`Candidate ${updatedFields.name || 'profile'} updated successfully!`, {
         icon: '✏️',
       });
@@ -143,6 +158,13 @@ export const CandidatesProvider = ({ children }) => {
         }
         return prev;
       });
+      recordActivity({
+        type: 'candidate_delete',
+        title: 'Candidate profile deleted',
+        meta: `${candidateName} removed from talent pool`,
+        link: '/candidates',
+        iconType: 'trash',
+      });
       toast.info(`Candidate ${candidateName} has been deleted.`, {
         icon: '🗑️',
       });
@@ -159,10 +181,24 @@ export const CandidatesProvider = ({ children }) => {
     const isNowShortlisted = toggleCandidateShortlistStorage(candidateId);
     setShortlistedIds(getShortlistedCandidateIds());
     if (isNowShortlisted) {
+      recordActivity({
+        type: 'candidate',
+        title: 'Candidate shortlisted',
+        meta: `${candidateName} bookmarked in talent pool`,
+        link: `/candidates/${candidateId}`,
+        iconType: 'star',
+      });
       toast.success(`${candidateName} has been shortlisted!`, {
         icon: '⭐',
       });
     } else {
+      recordActivity({
+        type: 'candidate',
+        title: 'Candidate un-shortlisted',
+        meta: `${candidateName} removed from shortlist`,
+        link: `/candidates/${candidateId}`,
+        iconType: 'user',
+      });
       toast.info(`${candidateName} removed from shortlist.`);
     }
     return isNowShortlisted;
@@ -179,6 +215,13 @@ export const CandidatesProvider = ({ children }) => {
 
   // Send message to candidate
   const sendMessage = useCallback((candidateName, messageText) => {
+    recordActivity({
+      type: 'candidate',
+      title: 'Outreach message sent',
+      meta: `Interview outreach delivered to ${candidateName}`,
+      link: '/candidates',
+      iconType: 'message',
+    });
     toast.success(`Message sent successfully to ${candidateName}!`, {
       icon: '💬',
     });

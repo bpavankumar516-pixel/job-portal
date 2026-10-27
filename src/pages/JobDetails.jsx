@@ -18,6 +18,7 @@ import {
   getTypeBadgeStyle,
 } from '../services/jobsService';
 import { getStoredCompanies } from '../services/companiesService';
+import { recordActivity } from '../services/activityService';
 import {
   Briefcase,
   MapPin,
@@ -100,6 +101,13 @@ export const JobDetails = () => {
     const updated = updateJob(job.id, formData);
     if (updated) {
       setJob(updated);
+      recordActivity({
+        type: 'job',
+        title: 'Job posting updated',
+        meta: `${updated.title} · ${updated.companyName} (${updated.location})`,
+        link: `/jobs/${job.id}`,
+        iconType: 'briefcase',
+      });
       toast.success(`Job "${updated.title}" updated successfully!`, {
         icon: '💼',
       });
@@ -109,6 +117,13 @@ export const JobDetails = () => {
 
   const handleDelete = () => {
     deleteJob(job.id);
+    recordActivity({
+      type: 'job_delete',
+      title: 'Job posting deleted',
+      meta: `Removed "${job.title}" at ${job.companyName}`,
+      link: '/jobs',
+      iconType: 'trash',
+    });
     toast.info(`Job "${job.title}" has been deleted.`, {
       icon: '🗑️',
     });
@@ -120,6 +135,13 @@ export const JobDetails = () => {
     const updated = toggleJobStatus(job.id);
     if (updated) {
       setJob(updated);
+      recordActivity({
+        type: 'job',
+        title: `Job marked as ${updated.status}`,
+        meta: `${updated.title} at ${updated.companyName} is now ${updated.status}`,
+        link: `/jobs/${job.id}`,
+        iconType: 'briefcase',
+      });
       toast.info(`Job marked as ${updated.status}.`, {
         icon: updated.status === 'Open' ? '🟢' : '🔴',
       });
@@ -138,14 +160,29 @@ export const JobDetails = () => {
     }
     setHasApplied(true);
     setIsApplyModalOpen(false);
+    recordActivity({
+      type: 'application',
+      title: 'New application submitted',
+      meta: `Applied for ${job.title} at ${job.companyName}`,
+      link: `/jobs/${job.id}`,
+      iconType: 'user-check',
+    });
     toast.success(`Application submitted for "${job.title}" at ${job.companyName}!`, {
       icon: '🚀',
     });
   };
 
   const handleToggleSave = () => {
-    setIsSaved(!isSaved);
-    if (!isSaved) {
+    const nextSaved = !isSaved;
+    setIsSaved(nextSaved);
+    if (nextSaved) {
+      recordActivity({
+        type: 'bookmark',
+        title: 'Job saved to bookmarks',
+        meta: `${job.title} at ${job.companyName}`,
+        link: `/jobs/${job.id}`,
+        iconType: 'bookmark',
+      });
       toast.success('Job saved to your bookmarks!');
     } else {
       toast.info('Job removed from bookmarks.');

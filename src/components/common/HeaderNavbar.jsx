@@ -2,6 +2,13 @@ import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
+  getStoredNotifications,
+  markNotificationAsRead,
+  markAllNotificationsAsRead,
+  clearAllNotifications,
+  formatRelativeTime,
+} from '../../services/notificationService';
+import {
   Search,
   Bell,
   ChevronDown,
@@ -11,6 +18,11 @@ import {
   Shield,
   LogOut,
   Menu,
+  CheckCheck,
+  Trash2,
+  UserCheck,
+  Bookmark,
+  CheckCircle,
 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
@@ -28,6 +40,7 @@ export const HeaderNavbar = ({
   const { user, role, logout } = useAuth();
   const [profileDropdownOpen, setProfileDropdownOpen] = useState(false);
   const [notificationsOpen, setNotificationsOpen] = useState(false);
+  const [notifications, setNotifications] = useState(() => getStoredNotifications());
   const [searchValue, setSearchValue] = useState('');
   const dropdownRef = useRef(null);
   const notifRef = useRef(null);
@@ -35,6 +48,94 @@ export const HeaderNavbar = ({
   const displayName = user?.fullName || 'Pavan Kumar';
   const displayRole = user?.role || role || 'Recruiter';
   const displayInitial = displayName.charAt(0).toUpperCase();
+
+  // Dynamic notification sync across window / storage events
+  useEffect(() => {
+    const handleSync = () => {
+      setNotifications(getStoredNotifications());
+    };
+    window.addEventListener('notifications_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('notifications_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
+  }, []);
+
+  const unreadCount = notifications.filter((n) => n.unread).length;
+
+  const handleNotificationClick = (item) => {
+    markNotificationAsRead(item.id);
+    setNotificationsOpen(false);
+    if (item.link) {
+      navigate(item.link);
+    }
+  };
+
+  const handleMarkAllRead = () => {
+    markAllNotificationsAsRead();
+    toast.success('All notifications marked as read');
+  };
+
+  const handleClearAll = () => {
+    clearAllNotifications();
+    toast.info('Notifications cleared');
+  };
+
+  const renderNotifIcon = (notif) => {
+    const key = notif.iconType || notif.type;
+    switch (key) {
+      case 'application':
+      case 'user-check':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-600 flex items-center justify-center flex-shrink-0">
+            <UserCheck className="w-4 h-4 stroke-[2.2]" />
+          </div>
+        );
+      case 'job':
+      case 'briefcase':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-indigo-50 border border-indigo-200 text-indigo-600 flex items-center justify-center flex-shrink-0">
+            <Briefcase className="w-4 h-4 stroke-[2.2]" />
+          </div>
+        );
+      case 'candidate':
+      case 'user':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 text-blue-600 flex items-center justify-center flex-shrink-0">
+            <User className="w-4 h-4 stroke-[2.2]" />
+          </div>
+        );
+      case 'company':
+      case 'building':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-sky-50 border border-sky-200 text-sky-600 flex items-center justify-center flex-shrink-0">
+            <Building2 className="w-4 h-4 stroke-[2.2]" />
+          </div>
+        );
+      case 'bookmark':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-purple-50 border border-purple-200 text-purple-600 flex items-center justify-center flex-shrink-0">
+            <Bookmark className="w-4 h-4 stroke-[2.2]" />
+          </div>
+        );
+      case 'trash':
+      case 'job_delete':
+      case 'candidate_delete':
+      case 'company_delete':
+        return (
+          <div className="w-8 h-8 rounded-xl bg-red-50 border border-red-200 text-red-600 flex items-center justify-center flex-shrink-0">
+            <Trash2 className="w-4 h-4 stroke-[2.2]" />
+          </div>
+        );
+      default:
+        return (
+          <div className="w-8 h-8 rounded-xl bg-slate-100 border border-slate-200 text-[#25324B] flex items-center justify-center flex-shrink-0">
+            <Bell className="w-4 h-4 stroke-[2.2]" />
+          </div>
+        );
+    }
+  };
 
   // Close dropdowns on outside click
   useEffect(() => {
@@ -123,7 +224,7 @@ export const HeaderNavbar = ({
           />
         </form>
 
-        {/* Notifications Icon with Red Dot */}
+        {/* Dynamic Notifications Icon with Live Badge & Dropdown */}
         <div className="relative" ref={notifRef}>
           <button
             type="button"
@@ -132,32 +233,112 @@ export const HeaderNavbar = ({
             aria-label="Notifications"
           >
             <Bell className="w-4 h-4 stroke-[2]" />
-            <span className="w-2 h-2 rounded-full bg-red-500 absolute top-1.5 right-1.5 ring-2 ring-white" />
+            {unreadCount > 0 && (
+              <span className="min-w-[16px] h-4 px-1 rounded-full bg-red-500 text-white text-[9px] font-extrabold absolute -top-1 -right-1 flex items-center justify-center ring-2 ring-white">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
           </button>
 
           {notificationsOpen && (
-            <div className="absolute right-0 mt-2.5 w-72 bg-white rounded-2xl shadow-xl border border-[#E9ECF2] p-3 z-50 animate-fadeIn text-left text-xs">
-              <div className="flex items-center justify-between pb-2 mb-2 border-b border-gray-100">
-                <span className="font-bold text-[#25324B]">Notifications</span>
-                <span className="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold">
-                  2 New
-                </span>
+            <div className="absolute right-0 mt-2.5 w-80 sm:w-96 bg-white rounded-2xl shadow-2xl border border-[#E9ECF2] p-3.5 z-50 animate-fadeIn text-left text-xs max-h-[460px] flex flex-col">
+              {/* Header: Title + Unread Count + Actions */}
+              <div className="flex items-center justify-between pb-3 mb-2 border-b border-gray-100 flex-shrink-0">
+                <div className="flex items-center gap-2">
+                  <span className="font-extrabold text-[#25324B] text-sm">Notifications</span>
+                  {unreadCount > 0 ? (
+                    <span className="text-[10px] bg-red-50 text-red-600 px-2 py-0.5 rounded-full font-bold border border-red-100">
+                      {unreadCount} New
+                    </span>
+                  ) : (
+                    <span className="text-[10px] bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full font-bold border border-emerald-100">
+                      All caught up
+                    </span>
+                  )}
+                </div>
+
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleMarkAllRead}
+                      className="text-[11px] font-semibold text-blue-600 hover:text-blue-800 transition-colors cursor-pointer flex items-center gap-1"
+                      title="Mark all as read"
+                    >
+                      <CheckCheck className="w-3.5 h-3.5" />
+                      <span>Read All</span>
+                    </button>
+                  )}
+                  {notifications.length > 0 && (
+                    <button
+                      type="button"
+                      onClick={handleClearAll}
+                      className="text-[11px] font-semibold text-gray-400 hover:text-red-600 transition-colors cursor-pointer"
+                      title="Clear notifications"
+                    >
+                      Clear
+                    </button>
+                  )}
+                </div>
               </div>
-              <div className="space-y-2">
-                <div className="p-2 rounded-xl bg-[#F8F9FC] border border-gray-100">
-                  <p className="font-bold text-[#25324B]">New Application Received</p>
-                  <p className="text-[11px] text-[#7C8493] mt-0.5">
-                    Alex Morgan applied for Frontend Developer at Google
-                  </p>
-                  <span className="text-[10px] text-gray-400 mt-1 block">15m ago</span>
-                </div>
-                <div className="p-2 rounded-xl bg-[#F8F9FC] border border-gray-100">
-                  <p className="font-bold text-[#25324B]">Job Post Live</p>
-                  <p className="text-[11px] text-[#7C8493] mt-0.5">
-                    Backend Developer is now active and receiving applicants
-                  </p>
-                  <span className="text-[10px] text-gray-400 mt-1 block">1h ago</span>
-                </div>
+
+              {/* Scrollable Notifications List */}
+              <div className="overflow-y-auto space-y-2 pr-1 flex-1">
+                {notifications.length === 0 ? (
+                  <div className="py-8 text-center text-[#7C8493]">
+                    <div className="w-10 h-10 rounded-full bg-slate-100 text-[#25324B] flex items-center justify-center mx-auto mb-2">
+                      <Bell className="w-5 h-5 text-slate-400 stroke-[1.8]" />
+                    </div>
+                    <p className="font-bold text-xs text-[#25324B]">No notifications yet</p>
+                    <p className="text-[11px] text-[#7C8493] mt-0.5">
+                      Actions taken across jobs, candidates, or companies will appear here in real-time.
+                    </p>
+                  </div>
+                ) : (
+                  notifications.map((notif) => (
+                    <div
+                      key={notif.id}
+                      onClick={() => handleNotificationClick(notif)}
+                      className={`p-2.5 rounded-xl border transition-all cursor-pointer flex items-start gap-3 group ${
+                        notif.unread
+                          ? 'bg-blue-50/40 hover:bg-blue-50/70 border-blue-100/80 shadow-2xs'
+                          : 'bg-[#F8F9FC] hover:bg-gray-100/80 border-gray-100'
+                      }`}
+                    >
+                      {renderNotifIcon(notif)}
+
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-start justify-between gap-1">
+                          <p
+                            className={`text-xs truncate ${
+                              notif.unread
+                                ? 'font-bold text-[#25324B]'
+                                : 'font-medium text-[#515B6F]'
+                            }`}
+                          >
+                            {notif.title}
+                          </p>
+                          {notif.unread && (
+                            <span className="w-2 h-2 rounded-full bg-blue-600 flex-shrink-0 mt-1" />
+                          )}
+                        </div>
+
+                        <p className="text-[11px] text-[#7C8493] mt-0.5 line-clamp-2 leading-relaxed">
+                          {notif.message}
+                        </p>
+
+                        <div className="flex items-center justify-between mt-1.5 pt-1 border-t border-gray-100/60">
+                          <span className="text-[10px] text-gray-400 font-medium">
+                            {formatRelativeTime(notif.timestamp) || notif.time}
+                          </span>
+                          <span className="text-[10px] font-bold text-blue-600 opacity-0 group-hover:opacity-100 transition-opacity">
+                            View details →
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  ))
+                )}
               </div>
             </div>
           )}

@@ -13,10 +13,12 @@ import {
   addJob,
   updateJob,
   deleteJob,
+  deleteMultipleJobs,
   toggleJobStatus,
   getJobStats,
 } from '../services/jobsService';
-import { ChevronLeft, ChevronRight, User, Briefcase } from 'lucide-react';
+import { recordActivity } from '../services/activityService';
+import { ChevronLeft, ChevronRight, User, Briefcase, Trash2 } from 'lucide-react';
 import { toast } from 'react-toastify';
 
 export const Jobs = () => {
@@ -45,12 +47,23 @@ export const Jobs = () => {
   const [editingJob, setEditingJob] = useState(null);
   const [viewingJob, setViewingJob] = useState(null);
   const [deletingJob, setDeletingJob] = useState(null);
+  const [isBulkDeleting, setIsBulkDeleting] = useState(false);
 
   // Sync state helper
   const syncState = () => {
     setJobs(getStoredJobs());
     setStats(getJobStats());
   };
+
+  // Sync across tabs or storage events
+  useEffect(() => {
+    const handleSync = () => {
+      setJobs(getStoredJobs());
+      setStats(getJobStats());
+    };
+    window.addEventListener('storage', handleSync);
+    return () => window.removeEventListener('storage', handleSync);
+  }, []);
 
   // Filter logic
   const filteredJobs = useMemo(() => {
@@ -105,6 +118,13 @@ export const Jobs = () => {
     if (editingJob) {
       const updated = updateJob(editingJob.id, formData);
       syncState();
+      recordActivity({
+        type: 'job',
+        title: 'Job posting updated',
+        meta: `${updated.title} · ${updated.companyName} (${updated.location})`,
+        link: `/jobs/${updated.id}`,
+        iconType: 'briefcase',
+      });
       toast.success(`Job "${updated.title}" updated successfully!`, {
         icon: '💼',
       });
@@ -112,6 +132,13 @@ export const Jobs = () => {
     } else {
       const created = addJob(formData);
       syncState();
+      recordActivity({
+        type: 'job',
+        title: 'Job posting published',
+        meta: `${created.title} · ${created.companyName} (${created.location})`,
+        link: `/jobs/${created.id}`,
+        iconType: 'briefcase',
+      });
       toast.success(`Job "${created.title}" published successfully!`, {
         icon: '🚀',
       });
@@ -119,21 +146,63 @@ export const Jobs = () => {
     }
   };
 
+  // Auto-adjust page if current page exceeds total pages after deletion
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
   const handleConfirmDelete = (id) => {
-    const toDelete = jobs.find((j) => j.id === id);
+    const toDelete = jobs.find((j) => String(j.id) === String(id));
     deleteJob(id);
     syncState();
-    setSelectedJobIds((prev) => prev.filter((item) => item !== id));
+    setSelectedJobIds((prev) => prev.filter((item) => String(item) !== String(id)));
     toast.info(`Job "${toDelete?.title || 'Posting'}" deleted.`, {
       icon: '🗑️',
     });
+    if (toDelete) {
+      recordActivity({
+        type: 'job_delete',
+        title: 'Job posting deleted',
+        meta: `Removed "${toDelete.title}" at ${toDelete.companyName}`,
+        link: '/jobs',
+        iconType: 'trash',
+      });
+    }
     setDeletingJob(null);
+  };
+
+  const handleConfirmBulkDelete = () => {
+    if (selectedJobIds.length === 0) return;
+    const count = selectedJobIds.length;
+    deleteMultipleJobs(selectedJobIds);
+    syncState();
+    setSelectedJobIds([]);
+    setIsBulkDeleting(false);
+    toast.info(`${count} job postings deleted successfully.`, {
+      icon: '🗑️',
+    });
+    recordActivity({
+      type: 'job_delete',
+      title: 'Bulk job postings deleted',
+      meta: `Removed ${count} job postings`,
+      link: '/jobs',
+      iconType: 'trash',
+    });
   };
 
   const handleToggleStatus = (id) => {
     const toggled = toggleJobStatus(id);
     if (toggled) {
       syncState();
+      recordActivity({
+        type: 'job',
+        title: `Job marked as ${toggled.status}`,
+        meta: `${toggled.title} at ${toggled.companyName} is now ${toggled.status}`,
+        link: `/jobs/${toggled.id}`,
+        iconType: 'briefcase',
+      });
       toast.info(
         `Job "${toggled.title}" marked as ${toggled.status}.`,
         { icon: toggled.status === 'Open' ? '🟢' : '🔴' }
@@ -212,6 +281,39 @@ export const Jobs = () => {
             onCreateJob={() => setIsCreateModalOpen(true)}
             hasActiveFilters={hasActiveFilters}
           />
+
+          {/* Bulk Selection Bar */}
+          {selectedJobIds.length > 0 && (
+            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 bg-[#25324B] text-white px-5 py-3 rounded-2xl shadow-lg animate-fadeIn">
+              <div className="flex items-center gap-2.5">
+                <span className="w-6 h-6 rounded-lg bg-white/20 flex items-center justify-center text-xs font-bold text-white">
+                  {selectedJobIds.length}
+                </span>
+                <span className="text-xs sm:text-sm font-semibold text-slate-100">
+                  {selectedJobIds.length} job{selectedJobIds.length > 1 ? 's' : ''} selected
+                </span>
+              </div>
+
+              <div className="flex items-center gap-2.5">
+                <button
+                  type="button"
+                  onClick={() => setSelectedJobIds([])}
+                  className="px-3 py-1.5 rounded-xl text-xs font-semibold text-slate-300 hover:text-white hover:bg-white/10 transition-colors cursor-pointer"
+                >
+                  Clear Selection
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => setIsBulkDeleting(true)}
+                  className="flex items-center gap-1.5 px-3.5 py-1.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-sm transition-all cursor-pointer"
+                >
+                  <Trash2 className="w-3.5 h-3.5" />
+                  <span>Delete Selected ({selectedJobIds.length})</span>
+                </button>
+              </div>
+            </div>
+          )}
 
           {/* 5. Job Table matching reference image */}
           <JobTable
@@ -308,12 +410,21 @@ export const Jobs = () => {
         onToggleStatus={handleToggleStatus}
       />
 
-      {/* Delete Confirmation Modal */}
+      {/* Delete Confirmation Modal (Single Job) */}
       <DeleteJobModal
         isOpen={Boolean(deletingJob)}
         onClose={() => setDeletingJob(null)}
         onConfirm={handleConfirmDelete}
         job={deletingJob}
+      />
+
+      {/* Delete Confirmation Modal (Bulk Selected Jobs) */}
+      <DeleteJobModal
+        isOpen={isBulkDeleting}
+        onClose={() => setIsBulkDeleting(false)}
+        onConfirm={handleConfirmBulkDelete}
+        isBulk={true}
+        count={selectedJobIds.length}
       />
     </div>
   );

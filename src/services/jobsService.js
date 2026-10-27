@@ -614,13 +614,23 @@ export const generate124Jobs = (baseJobs = INITIAL_MOCK_JOBS) => {
 
 // Saved Jobs Bookmark LocalStorage Persistence
 const SAVED_JOBS_KEY = 'jobportal_saved_job_ids';
+const APPLIED_JOBS_KEY = 'jobportal_applied_job_ids';
+
+const DEFAULT_SAVED_IDS = [
+  'job_01', 'job_02', 'job_03', 'job_04', 'job_05',
+  'job_06', 'job_07', 'job_08', 'job_09', 'job_10',
+  'job_11', 'job_12', 'job_13', 'job_14', 'job_15',
+  'job_16', 'job_17'
+];
+
+const DEFAULT_APPLIED_IDS = ['job_02', 'job_04', 'job_05'];
 
 export const getSavedJobIds = () => {
   try {
     const data = localStorage.getItem(SAVED_JOBS_KEY);
-    return data ? JSON.parse(data) : ['job_01', 'job_03'];
+    return data ? JSON.parse(data) : DEFAULT_SAVED_IDS;
   } catch {
-    return ['job_01', 'job_03'];
+    return DEFAULT_SAVED_IDS;
   }
 };
 
@@ -635,6 +645,7 @@ export const toggleSavedJobId = (jobId) => {
       updated = [...current, jobId];
     }
     localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('storage'));
     return updated.includes(jobId);
   } catch {
     return false;
@@ -643,6 +654,38 @@ export const toggleSavedJobId = (jobId) => {
 
 export const isJobSaved = (jobId) => {
   const current = getSavedJobIds();
+  return current.includes(jobId);
+};
+
+export const getAppliedJobIds = () => {
+  try {
+    const data = localStorage.getItem(APPLIED_JOBS_KEY);
+    return data ? JSON.parse(data) : DEFAULT_APPLIED_IDS;
+  } catch {
+    return DEFAULT_APPLIED_IDS;
+  }
+};
+
+export const toggleApplyJob = (jobId) => {
+  try {
+    const current = getAppliedJobIds();
+    const index = current.indexOf(jobId);
+    let updated;
+    if (index >= 0) {
+      updated = current.filter((id) => id !== jobId);
+    } else {
+      updated = [...current, jobId];
+    }
+    localStorage.setItem(APPLIED_JOBS_KEY, JSON.stringify(updated));
+    window.dispatchEvent(new Event('storage'));
+    return updated.includes(jobId);
+  } catch {
+    return false;
+  }
+};
+
+export const isJobApplied = (jobId) => {
+  const current = getAppliedJobIds();
   return current.includes(jobId);
 };
 
@@ -655,8 +698,8 @@ export const initJobsDB = () => {
       localStorage.setItem(JOBS_DB_KEY, JSON.stringify(fullList));
     } else {
       const parsed = JSON.parse(existing);
-      // Re-seed if previously had fewer than 124 jobs or outdated structure
-      if (!Array.isArray(parsed) || parsed.length < 124 || !parsed[0]?.workplaceType) {
+      // Re-seed only if parsed is not an array or has outdated schema missing workplaceType
+      if (!Array.isArray(parsed) || (parsed.length > 0 && !parsed[0]?.workplaceType)) {
         const fullList = generate124Jobs();
         localStorage.setItem(JOBS_DB_KEY, JSON.stringify(fullList));
       }
@@ -679,6 +722,11 @@ export const getStoredJobs = () => {
 
 export const saveJobsToStorage = (jobs) => {
   localStorage.setItem(JOBS_DB_KEY, JSON.stringify(jobs));
+  try {
+    window.dispatchEvent(new Event('storage'));
+  } catch (e) {
+    // ignore
+  }
 };
 
 // Calculate 5 metric stats matching image
@@ -748,8 +796,41 @@ export const updateJob = (id, updatedFields) => {
 
 export const deleteJob = (id) => {
   const jobs = getStoredJobs();
-  const filtered = jobs.filter((j) => j.id !== id);
+  const toDelete = jobs.find((j) => String(j.id) === String(id));
+  const filtered = jobs.filter((j) => String(j.id) !== String(id));
   saveJobsToStorage(filtered);
+
+  // Clean up saved & applied job lists
+  try {
+    const saved = getSavedJobIds().filter((savedId) => String(savedId) !== String(id));
+    localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(saved));
+  } catch {}
+
+  try {
+    const applied = getAppliedJobIds().filter((appId) => String(appId) !== String(id));
+    localStorage.setItem(APPLIED_JOBS_KEY, JSON.stringify(applied));
+  } catch {}
+
+  return toDelete || true;
+};
+
+export const deleteMultipleJobs = (ids) => {
+  if (!Array.isArray(ids) || ids.length === 0) return false;
+  const idSet = new Set(ids.map((id) => String(id)));
+  const jobs = getStoredJobs();
+  const filtered = jobs.filter((j) => !idSet.has(String(j.id)));
+  saveJobsToStorage(filtered);
+
+  try {
+    const saved = getSavedJobIds().filter((savedId) => !idSet.has(String(savedId)));
+    localStorage.setItem(SAVED_JOBS_KEY, JSON.stringify(saved));
+  } catch {}
+
+  try {
+    const applied = getAppliedJobIds().filter((appId) => !idSet.has(String(appId)));
+    localStorage.setItem(APPLIED_JOBS_KEY, JSON.stringify(applied));
+  } catch {}
+
   return true;
 };
 

@@ -214,86 +214,121 @@ export const JobTable = ({
                       {job.applicationsCount}
                     </td>
 
-                    {/* 11. Actions: Three Dots Menu */}
+                    {/* 11. Actions */}
                     <td className="py-4 pr-5 pl-2 text-right relative">
-                      <button
-                        type="button"
-                        onClick={(e) => {
-                          e.stopPropagation();
-                          setActiveMenuId(isMenuOpen ? null : job.id);
-                        }}
-                        className="p-1.5 rounded-lg text-[#7C8493] hover:text-[#25324B] hover:bg-[#F0F3F8] transition-colors cursor-pointer"
-                        aria-label="Actions"
-                      >
-                        <MoreVertical className="w-4 h-4" />
-                      </button>
-
-                      {/* Dropdown Menu */}
-                      {isMenuOpen && (
-                        <div
-                          ref={menuRef}
-                          className="absolute right-5 mt-1 w-44 bg-white rounded-xl shadow-xl border border-[#E9ECF2] p-1 z-30 animate-fadeIn text-left text-xs"
+                      <div className="flex items-center justify-end gap-1">
+                        {/* Quick View */}
+                        <button
+                          type="button"
+                          onClick={() => onViewJob(job)}
+                          title="View Details"
+                          className="p-1.5 rounded-lg text-[#7C8493] hover:text-[#25324B] hover:bg-[#F0F3F8] transition-colors cursor-pointer"
                         >
+                          <Eye className="w-4 h-4" />
+                        </button>
+
+                        {/* Quick Edit */}
+                        <button
+                          type="button"
+                          onClick={() => onEditJob(job)}
+                          title="Edit Job"
+                          className="p-1.5 rounded-lg text-[#7C8493] hover:text-[#25324B] hover:bg-[#F0F3F8] transition-colors cursor-pointer"
+                        >
+                          <Edit2 className="w-4 h-4" />
+                        </button>
+
+                        {/* Quick Delete */}
+                        <button
+                          type="button"
+                          onClick={() => onDeleteJob(job)}
+                          title="Delete Job"
+                          className="p-1.5 rounded-lg text-red-500 hover:text-red-700 hover:bg-red-50 transition-colors cursor-pointer"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </button>
+
+                        {/* Three Dots More Options */}
+                        <div className="relative">
                           <button
                             type="button"
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              onViewJob(job);
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              setActiveMenuId(isMenuOpen ? null : job.id);
                             }}
-                            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-[#F0F3F8] text-[#25324B] font-semibold transition-colors cursor-pointer"
+                            className="p-1.5 rounded-lg text-[#7C8493] hover:text-[#25324B] hover:bg-[#F0F3F8] transition-colors cursor-pointer"
+                            aria-label="More Actions"
                           >
-                            <Eye className="w-3.5 h-3.5 text-[#7C8493]" />
-                            <span>View Details</span>
+                            <MoreVertical className="w-4 h-4" />
                           </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              onEditJob(job);
-                            }}
-                            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-[#F0F3F8] text-[#25324B] font-semibold transition-colors cursor-pointer"
-                          >
-                            <Edit2 className="w-3.5 h-3.5 text-[#7C8493]" />
-                            <span>Edit Job</span>
-                          </button>
+                          {/* Dropdown Menu */}
+                          {isMenuOpen && (
+                            <div
+                              ref={menuRef}
+                              className="absolute right-0 mt-1 w-44 bg-white rounded-xl shadow-xl border border-[#E9ECF2] p-1 z-30 animate-fadeIn text-left text-xs"
+                            >
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuId(null);
+                                  onViewJob(job);
+                                }}
+                                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-[#F0F3F8] text-[#25324B] font-semibold transition-colors cursor-pointer"
+                              >
+                                <Eye className="w-3.5 h-3.5 text-[#7C8493]" />
+                                <span>View Details</span>
+                              </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              onToggleStatus(job.id);
-                            }}
-                            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-[#F0F3F8] text-[#25324B] font-semibold transition-colors cursor-pointer"
-                          >
-                            {job.status === 'Open' ? (
-                              <>
-                                <XCircle className="w-3.5 h-3.5 text-amber-600" />
-                                <span>Mark as Closed</span>
-                              </>
-                            ) : (
-                              <>
-                                <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
-                                <span>Mark as Open</span>
-                              </>
-                            )}
-                          </button>
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuId(null);
+                                  onEditJob(job);
+                                }}
+                                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-[#F0F3F8] text-[#25324B] font-semibold transition-colors cursor-pointer"
+                              >
+                                <Edit2 className="w-3.5 h-3.5 text-[#7C8493]" />
+                                <span>Edit Job</span>
+                              </button>
 
-                          <div className="border-t border-[#F0F2F6] my-1" />
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuId(null);
+                                  onToggleStatus(job.id);
+                                }}
+                                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-[#F0F3F8] text-[#25324B] font-semibold transition-colors cursor-pointer"
+                              >
+                                {job.status === 'Open' ? (
+                                  <>
+                                    <XCircle className="w-3.5 h-3.5 text-amber-600" />
+                                    <span>Mark as Closed</span>
+                                  </>
+                                ) : (
+                                  <>
+                                    <CheckCircle className="w-3.5 h-3.5 text-emerald-600" />
+                                    <span>Mark as Open</span>
+                                  </>
+                                )}
+                              </button>
 
-                          <button
-                            type="button"
-                            onClick={() => {
-                              setActiveMenuId(null);
-                              onDeleteJob(job);
-                            }}
-                            className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-red-50 text-red-600 font-semibold transition-colors cursor-pointer"
-                          >
-                            <Trash2 className="w-3.5 h-3.5" />
-                            <span>Delete Job</span>
-                          </button>
+                              <div className="border-t border-[#F0F2F6] my-1" />
+
+                              <button
+                                type="button"
+                                onClick={() => {
+                                  setActiveMenuId(null);
+                                  onDeleteJob(job);
+                                }}
+                                className="w-full flex items-center gap-2 px-2.5 py-2 rounded-lg hover:bg-red-50 text-red-600 font-semibold transition-colors cursor-pointer"
+                              >
+                                <Trash2 className="w-3.5 h-3.5" />
+                                <span>Delete Job</span>
+                              </button>
+                            </div>
+                          )}
                         </div>
-                      )}
+                      </div>
                     </td>
                   </tr>
                 );

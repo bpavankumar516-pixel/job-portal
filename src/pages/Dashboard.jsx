@@ -9,7 +9,8 @@ import { RecentActivities } from '../components/dashboard/RecentActivities';
 import { TopCompanies } from '../components/dashboard/TopCompanies';
 import { QuickJobModal } from '../components/dashboard/QuickJobModal';
 import { getStoredCompanies } from '../services/companiesService';
-import { getJobStats } from '../services/jobsService';
+import { getJobStats, getSavedJobIds } from '../services/jobsService';
+import { useCandidates } from '../context/CandidatesContext';
 import { HeaderNavbar } from '../components/common/HeaderNavbar';
 import {
   Building2,
@@ -33,18 +34,20 @@ export const Dashboard = () => {
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 
   const navigate = useNavigate();
+  const { candidates } = useCandidates();
 
   // Dynamic state for stats - totalCompanies & jobs dynamically fetched
   const [stats, setStats] = useState(() => {
     const stored = getStoredCompanies();
     const jobStats = getJobStats();
+    const saved = getSavedJobIds();
     return {
       totalCompanies: stored?.length || 32,
       totalJobs: jobStats.totalJobs || 24,
       activeJobs: jobStats.activeJobs || 18,
-      totalCandidates: 2846,
+      totalCandidates: candidates.length || 30,
       totalApplications: jobStats.totalApplications || 482,
-      savedJobs: 94,
+      savedJobs: saved.length || 4,
     };
   });
 
@@ -53,19 +56,22 @@ export const Dashboard = () => {
     const handleSync = () => {
       const stored = getStoredCompanies();
       const jobStats = getJobStats();
+      const saved = getSavedJobIds();
       setStats((prev) => ({
         ...prev,
         totalCompanies: stored?.length || 32,
         totalJobs: jobStats.totalJobs || 24,
         activeJobs: jobStats.activeJobs || 18,
+        totalCandidates: candidates.length || 30,
         totalApplications: jobStats.totalApplications || 482,
+        savedJobs: saved.length || 4,
       }));
     };
 
     handleSync();
     window.addEventListener('storage', handleSync);
     return () => window.removeEventListener('storage', handleSync);
-  }, []);
+  }, [candidates]);
 
   const displayName =
     user?.fullName ||
@@ -134,15 +140,17 @@ export const Dashboard = () => {
             <StatCard
               title="Total Candidates"
               value={stats.totalCandidates}
-              subtitle="+210 this month"
+              subtitle="Live Talent Pool"
               icon={User}
+              onClick={() => navigate('/candidates')}
             />
 
             <StatCard
               title="Total Applications"
               value={stats.totalApplications}
-              subtitle="+480 this month"
+              subtitle="Across Active Jobs"
               icon={FileText}
+              onClick={() => navigate('/jobs')}
             />
           </div>
 
@@ -151,22 +159,20 @@ export const Dashboard = () => {
             <StatCard
               title="Saved Jobs"
               value={stats.savedJobs}
-              subtitle="Across your profile"
+              subtitle="Bookmarked by you"
               icon={Bookmark}
+              onClick={() => navigate('/job-search')}
             />
           </div>
 
           {/* 5. Quick Actions Section (4 Dark Slate Cards) */}
           <QuickActions
             onPostJob={() => setIsPostModalOpen(true)}
-            onAddCompany={() => {
-              navigate('/companies');
-            }}
-            onReviewCandidates={() => {
-              toast.info('Candidate Profile & Review (Module 6) is active.');
-            }}
+            onAddCompany={() => navigate('/companies')}
+            onReviewCandidates={() => navigate('/candidates')}
             onViewReports={() => {
-              toast.info('Reports & Analytics (Module 8) is active.');
+              window.scrollTo({ top: 600, behavior: 'smooth' });
+              toast.info('Viewing Analytics and Statistics');
             }}
           />
 

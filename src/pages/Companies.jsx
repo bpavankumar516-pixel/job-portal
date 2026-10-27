@@ -16,6 +16,7 @@ import {
   deleteCompany,
   getCompanyStats,
 } from '../services/companiesService';
+import { recordActivity } from '../services/activityService';
 import {
   Plus,
   Bell,
@@ -107,6 +108,13 @@ export const Companies = () => {
       const updated = updateCompany(editingCompany.id, formData);
       setCompanies(getStoredCompanies());
       setStats(getCompanyStats());
+      recordActivity({
+        type: 'company',
+        title: 'Company profile updated',
+        meta: `${updated.name} · ${updated.industry} (${updated.location})`,
+        link: `/companies/${updated.id}`,
+        iconType: 'building',
+      });
       toast.success(`Company "${updated.name}" updated successfully!`, {
         icon: '🏢',
       });
@@ -115,6 +123,13 @@ export const Companies = () => {
       const created = addCompany(formData);
       setCompanies(getStoredCompanies());
       setStats(getCompanyStats());
+      recordActivity({
+        type: 'company',
+        title: 'New company registered',
+        meta: `${created.name} · ${created.industry} (${created.location})`,
+        link: `/companies/${created.id}`,
+        iconType: 'building',
+      });
       toast.success(`Company "${created.name}" created successfully!`, {
         icon: '🚀',
       });
@@ -126,6 +141,15 @@ export const Companies = () => {
     deleteCompany(id);
     setCompanies(getStoredCompanies());
     setStats(getCompanyStats());
+    if (toDelete) {
+      recordActivity({
+        type: 'company_delete',
+        title: 'Company profile deleted',
+        meta: `${toDelete.name} removed from company directory`,
+        link: '/companies',
+        iconType: 'trash',
+      });
+    }
     toast.info(`Company "${toDelete?.name || 'Selected'}" has been removed.`, {
       icon: '🗑️',
     });

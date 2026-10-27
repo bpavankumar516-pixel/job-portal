@@ -13,6 +13,7 @@ import {
   getCompanyEnrichedData,
   getStoredCompanies,
 } from '../services/companiesService';
+import { recordActivity } from '../services/activityService';
 import {
   Building2,
   MapPin,
@@ -113,6 +114,13 @@ export const CompanyDetails = () => {
     const updated = updateCompany(company.id, formData);
     if (updated) {
       setCompany(updated);
+      recordActivity({
+        type: 'company',
+        title: 'Company profile updated',
+        meta: `${updated.name} · ${updated.industry} (${updated.location})`,
+        link: `/companies/${company.id}`,
+        iconType: 'building',
+      });
       toast.success(`"${updated.name}" details updated successfully!`, {
         icon: '🏢',
       });
@@ -122,6 +130,13 @@ export const CompanyDetails = () => {
 
   const handleDelete = () => {
     deleteCompany(company.id);
+    recordActivity({
+      type: 'company_delete',
+      title: 'Company profile deleted',
+      meta: `${company.name} removed from directory`,
+      link: '/companies',
+      iconType: 'trash',
+    });
     toast.info(`"${company.name}" has been removed.`, {
       icon: '🗑️',
     });
@@ -135,6 +150,13 @@ export const CompanyDetails = () => {
       return;
     }
     setAppliedJobs((prev) => ({ ...prev, [job.id]: true }));
+    recordActivity({
+      type: 'application',
+      title: 'New application submitted',
+      meta: `Applied for ${job.title} at ${company.name}`,
+      link: `/jobs/${job.id}`,
+      iconType: 'user-check',
+    });
     toast.success(`Application submitted for "${job.title}" at ${company.name}!`, {
       icon: '🚀',
     });
@@ -144,6 +166,13 @@ export const CompanyDetails = () => {
     setSavedJobs((prev) => {
       const next = !prev[jobId];
       if (next) {
+        recordActivity({
+          type: 'bookmark',
+          title: 'Job saved to bookmarks',
+          meta: `Job at ${company.name} bookmarked`,
+          link: `/jobs/${jobId}`,
+          iconType: 'bookmark',
+        });
         toast.success('Job saved to your bookmarks!');
       } else {
         toast.info('Job removed from bookmarks.');

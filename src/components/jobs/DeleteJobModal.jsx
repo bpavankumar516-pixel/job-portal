@@ -1,8 +1,9 @@
 import React from 'react';
 import { Trash2, AlertTriangle, X } from 'lucide-react';
 
-export const DeleteJobModal = ({ isOpen, onClose, onConfirm, job }) => {
-  if (!isOpen || !job) return null;
+export const DeleteJobModal = ({ isOpen, onClose, onConfirm, job, isBulk = false, count = 1 }) => {
+  if (!isOpen) return null;
+  if (!isBulk && !job) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-fadeIn">
@@ -20,10 +21,19 @@ export const DeleteJobModal = ({ isOpen, onClose, onConfirm, job }) => {
         </div>
 
         <h3 className="text-lg font-extrabold text-[#25324B] mb-2">
-          Delete Job Posting?
+          {isBulk ? `Delete ${count} Job Postings?` : 'Delete Job Posting?'}
         </h3>
         <p className="text-xs sm:text-sm text-[#7C8493] mb-6 leading-relaxed">
-          Are you sure you want to delete <strong className="text-[#25324B]">"{job.title}"</strong> at {job.companyName}? This action will permanently remove this posting from the recruiter portal.
+          {isBulk ? (
+            <>
+              Are you sure you want to delete <strong className="text-[#25324B]">{count} selected job postings</strong>? This action cannot be undone and will permanently remove them from the portal.
+            </>
+          ) : (
+            <>
+              Are you sure you want to delete <strong className="text-[#25324B]">"{job?.title}"</strong>
+              {job?.companyName ? ` at ${job.companyName}` : ''}? This action will permanently remove this posting from the recruiter portal.
+            </>
+          )}
         </p>
 
         <div className="flex items-center justify-center gap-3">
@@ -36,8 +46,8 @@ export const DeleteJobModal = ({ isOpen, onClose, onConfirm, job }) => {
           </button>
           <button
             type="button"
-            onClick={() => onConfirm(job.id)}
-            className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-600/20 transition-colors cursor-pointer"
+            onClick={() => onConfirm(isBulk ? null : job?.id)}
+            className="flex-1 py-2.5 rounded-xl bg-red-600 hover:bg-red-700 text-white text-xs font-bold shadow-md shadow-red-600/20 transition-all cursor-pointer"
           >
             Confirm Delete
           </button>

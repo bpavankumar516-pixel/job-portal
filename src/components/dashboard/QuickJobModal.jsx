@@ -4,6 +4,7 @@ import { toast } from 'react-toastify';
 import { X, Briefcase, PlusCircle, CheckCircle2 } from 'lucide-react';
 import { addQuickJob } from '../../services/dashboardData';
 import { getStoredCompanies } from '../../services/companiesService';
+import { recordActivity } from '../../services/activityService';
 
 export const QuickJobModal = ({ isOpen, onClose, onJobCreated }) => {
   const companiesList = useMemo(() => getStoredCompanies(), []);
@@ -33,6 +34,13 @@ export const QuickJobModal = ({ isOpen, onClose, onJobCreated }) => {
   const onSubmit = async (data) => {
     try {
       const createdJob = addQuickJob(data);
+      recordActivity({
+        type: 'job',
+        title: 'New job posting published',
+        meta: `${createdJob.title} at ${createdJob.companyName}`,
+        link: '/jobs',
+        iconType: 'briefcase',
+      });
       toast.success(`Job "${createdJob.title}" posted successfully!`, {
         icon: '💼',
       });
