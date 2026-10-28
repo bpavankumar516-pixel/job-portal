@@ -185,5 +185,5 @@ export const getDynamicActivities = (jobs = [], candidates = [], shortlistedIds 
     }
   }
 
-  return deduped.slice(0, 10);
+  return deduped.slice(0, 5);
 };

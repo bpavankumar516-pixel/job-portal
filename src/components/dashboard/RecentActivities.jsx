@@ -48,22 +48,21 @@ export const RecentActivities = () => {
     return getDynamicActivities(jobs, candidates, shortlistedIds);
   }, [jobs, candidates, shortlistedIds, activityVersion]);
 
-  // Filter activities based on active pill
+  // Filter activities based on active pill (max 5 items)
   const filteredActivities = useMemo(() => {
+    let result = allActivities;
     if (activeFilter === 'applications') {
-      return allActivities.filter((a) => a.type === 'application');
-    }
-    if (activeFilter === 'jobs') {
-      return allActivities.filter(
+      result = allActivities.filter((a) => a.type === 'application');
+    } else if (activeFilter === 'jobs') {
+      result = allActivities.filter(
         (a) => a.type === 'job' || a.type === 'bookmark' || a.type === 'job_delete'
       );
-    }
-    if (activeFilter === 'candidates') {
-      return allActivities.filter(
+    } else if (activeFilter === 'candidates') {
+      result = allActivities.filter(
         (a) => a.type === 'candidate' || a.type === 'candidate_delete'
       );
     }
-    return allActivities;
+    return result.slice(0, 5);
   }, [allActivities, activeFilter]);
 
   // Helper to render matching icon dynamically

@@ -59,9 +59,9 @@ export const SavedJobs = () => {
   // Active Menu Dropdown for Three Dots
   const [activeMenuId, setActiveMenuId] = useState(null);
 
-  // Pagination (10 per page matching reference image)
+  // Pagination (6 per page)
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 10;
+  const itemsPerPage = 6;
 
   // Listen for storage events (cross-tab and within portal)
   useEffect(() => {
@@ -188,6 +188,19 @@ export const SavedJobs = () => {
   // Pagination Slice
   const totalItems = filteredJobs.length;
   const totalPages = Math.max(1, Math.ceil(totalItems / itemsPerPage));
+
+  // Reset to page 1 on filter or tab change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [searchQuery, statusTab, selectedJobType, selectedLocation, selectedExperience]);
+
+  // Auto-adjust page if current page exceeds total pages after filter change
+  useEffect(() => {
+    if (currentPage > totalPages && totalPages > 0) {
+      setCurrentPage(totalPages);
+    }
+  }, [totalPages, currentPage]);
+
   const paginatedJobs = useMemo(() => {
     const start = (currentPage - 1) * itemsPerPage;
     return filteredJobs.slice(start, start + itemsPerPage);

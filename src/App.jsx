@@ -15,6 +15,7 @@ import { Jobs } from './pages/Jobs';
 import { JobDetails } from './pages/JobDetails';
 import { JobSearch } from './pages/JobSearch';
 import { SavedJobs } from './pages/SavedJobs';
+import { Reports } from './pages/Reports';
 import { CandidateProfile } from './pages/CandidateProfile';
 import { Candidates } from './pages/Candidates';
 import { CandidatesProvider } from './context/CandidatesContext';
@@ -131,7 +132,7 @@ export function App() {
             path="/reports"
             element={
               <ProtectedRoute>
-                <Dashboard />
+                <Reports />
               </ProtectedRoute>
             }
           />
