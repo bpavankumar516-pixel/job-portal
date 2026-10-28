@@ -1,5 +1,5 @@
 import React from 'react';
-import { NavLink, useLocation } from 'react-router-dom';
+import { NavLink, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import {
   LayoutDashboard,
@@ -10,15 +10,50 @@ import {
   FileText,
   Bookmark,
   BarChart3,
+  User,
   LogOut,
   X,
 } from 'lucide-react';
+import { toast } from 'react-toastify';
 
 export const Sidebar = ({ isOpen, onClose }) => {
   const { user, logout, role } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
-  const navItems = [
+  const isCandidate = role === 'candidate';
+
+  // Candidate Navigation Items (No Companies page for candidate)
+  const candidateNavItems = [
+    {
+      label: 'Dashboard',
+      icon: LayoutDashboard,
+      to: '/dashboard',
+    },
+    {
+      label: 'Job Search',
+      icon: Search,
+      to: '/job-search',
+    },
+    {
+      label: 'Saved Jobs',
+      icon: Bookmark,
+      to: '/saved-jobs',
+    },
+    {
+      label: 'My Applications',
+      icon: FileText,
+      to: '/applications',
+    },
+    {
+      label: 'My Profile',
+      icon: User,
+      to: '/candidate-profile',
+    },
+  ];
+
+  // Recruiter Navigation Items - Exact Original Recruiter Portal Pages & Order
+  const recruiterNavItems = [
     {
       label: 'Dashboard',
       icon: LayoutDashboard,
@@ -61,6 +96,8 @@ export const Sidebar = ({ isOpen, onClose }) => {
     },
   ];
 
+  const navItems = isCandidate ? candidateNavItems : recruiterNavItems;
+
   return (
     <>
       {/* Mobile Backdrop Overlay */}
@@ -80,7 +117,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
       >
         <div>
           {/* Top Logo matching image */}
-          <div className="flex items-center justify-between pb-8">
+          <div className="flex items-center justify-between pb-5">
             <div className="flex items-center gap-3">
               <div className="w-10 h-10 rounded-xl bg-white text-[#25324B] flex items-center justify-center shadow-md">
                 <Briefcase className="w-5 h-5 stroke-[2.3]" />
@@ -90,7 +127,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
                   JobPortal
                 </span>
                 <span className="text-xs font-medium text-slate-300 mt-1 capitalize tracking-wide">
-                  {role === 'candidate' ? 'Candidate Portal' : 'Recruiter Portal'}
+                  {isCandidate ? 'Candidate Portal' : 'Recruiter Portal'}
                 </span>
               </div>
             </div>
@@ -114,6 +151,7 @@ export const Sidebar = ({ isOpen, onClose }) => {
                 location.pathname === item.to ||
                 (item.to === '/candidates' &&
                   (location.pathname.startsWith('/candidates') || location.pathname.startsWith('/candidate-profile'))) ||
+                (item.to === '/candidate-profile' && location.pathname.startsWith('/candidate-profile')) ||
                 (item.to === '/companies' && location.pathname.startsWith('/companies')) ||
                 (item.to === '/jobs' && location.pathname.startsWith('/jobs'));
 
@@ -144,14 +182,14 @@ export const Sidebar = ({ isOpen, onClose }) => {
         <div className="pt-4 border-t border-white/10 space-y-3">
           <div className="flex items-center gap-3 px-1">
             <div className="w-8 h-8 rounded-full bg-white text-[#25324B] flex items-center justify-center font-extrabold text-xs flex-shrink-0">
-              {(user?.fullName || 'Pavan Kumar').charAt(0).toUpperCase()}
+              {(user?.fullName || (isCandidate ? 'Olivia Wilson' : 'Pavan Kumar')).charAt(0).toUpperCase()}
             </div>
             <div className="flex flex-col truncate">
               <span className="text-xs font-bold text-white truncate leading-tight">
-                {user?.fullName || 'Pavan Kumar'}
+                {user?.fullName || (isCandidate ? 'Olivia Wilson' : 'Pavan Kumar')}
               </span>
               <span className="text-[10px] text-slate-300 truncate">
-                {user?.email || 'recruiter@jobportal.com'}
+                {user?.email || (isCandidate ? 'candidate@jobportal.com' : 'recruiter@jobportal.com')}
               </span>
             </div>
           </div>

@@ -6,9 +6,11 @@ import {
   getStoredJobs,
   getSavedJobIds,
   toggleSavedJobId,
+  getAppliedJobIds,
   getCategoryBadgeStyle,
   getTypeBadgeStyle,
 } from '../services/jobsService';
+import { applyForJob } from '../services/applicationsService';
 import { recordActivity } from '../services/activityService';
 import {
   Search,
@@ -41,6 +43,7 @@ export const JobSearch = () => {
   // Dynamic Jobs Data from LocalStorage
   const [jobs, setJobs] = useState(() => getStoredJobs());
   const [savedJobIds, setSavedJobIds] = useState(() => getSavedJobIds());
+  const [appliedJobIds, setAppliedJobIds] = useState(() => getAppliedJobIds());
 
   // Filter States
   const [keyword, setKeyword] = useState('');
@@ -68,9 +71,22 @@ export const JobSearch = () => {
   // Profile Modal State (Triggered by 'Update Profile' promo card)
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
 
-  // Re-fetch jobs on mount
+  // Re-fetch jobs and sync with storage & applications in real-time
   useEffect(() => {
-    setJobs(getStoredJobs());
+    const syncData = () => {
+      setJobs(getStoredJobs());
+      setSavedJobIds(getSavedJobIds());
+      setAppliedJobIds(getAppliedJobIds());
+    };
+    syncData();
+    window.addEventListener('storage', syncData);
+    window.addEventListener('jobs_updated', syncData);
+    window.addEventListener('applications_updated', syncData);
+    return () => {
+      window.removeEventListener('storage', syncData);
+      window.removeEventListener('jobs_updated', syncData);
+      window.removeEventListener('applications_updated', syncData);
+    };
   }, []);
 
   // Extract unique locations dynamically from data
@@ -108,6 +124,31 @@ export const JobSearch = () => {
       });
     } else {
       toast.info(`"${jobTitle}" removed from bookmarks.`);
+    }
+  };
+
+  // Quick Apply Handler with real-time recruiter sync & activity/notification
+  const handleQuickApply = (e, job) => {
+    e.stopPropagation();
+    const res = applyForJob({
+      jobId: job.id,
+      jobTitle: job.title,
+      companyName: job.companyName,
+      candidateId: 1,
+      candidateName: 'Olivia Wilson',
+      candidateEmail: 'olivia.wilson@example.com',
+      candidateRole: 'Senior Frontend Developer',
+      candidateAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+      notes: `Quick applied from Candidate Job Search for ${job.title} at ${job.companyName}.`,
+    });
+
+    if (res.success) {
+      setAppliedJobIds(getAppliedJobIds());
+      toast.success(`Successfully applied for ${job.title}! Recruiter has been notified.`, {
+        icon: '🎉',
+      });
+    } else {
+      toast.info(res.message || 'Already applied for this position.');
     }
   };
 
@@ -573,6 +614,7 @@ export const JobSearch = () => {
               ) : (
                 paginatedJobs.map((job) => {
                   const isSaved = savedJobIds.includes(job.id);
+                  const isApplied = appliedJobIds.includes(String(job.id));
                   return (
                     <div
                       key={job.id}
@@ -668,14 +710,32 @@ export const JobSearch = () => {
                           </div>
                         </div>
 
-                        {/* View Details CTA Button */}
-                        <button
-                          type="button"
-                          onClick={() => navigate(`/jobs/${job.id}`)}
-                          className="px-5 py-2 rounded-xl bg-[#25324B] hover:bg-[#1C2638] text-white text-xs font-bold shadow-2xs transition-all cursor-pointer"
-                        >
-                          View Details
-                        </button>
+                        {/* Actions: Apply Now / Applied + View Details CTA Button */}
+                        <div className="flex items-center gap-2">
+                          {isApplied ? (
+                            <span className="inline-flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-emerald-50 text-emerald-700 text-xs font-bold border border-emerald-200">
+                              <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600" />
+                              <span>Applied</span>
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              onClick={(e) => handleQuickApply(e, job)}
+                              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold shadow-2xs transition-all cursor-pointer flex items-center gap-1.5 whitespace-nowrap"
+                            >
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Apply Now</span>
+                            </button>
+                          )}
+
+                          <button
+                            type="button"
+                            onClick={() => navigate(`/jobs/${job.id}`)}
+                            className="px-4 py-2 rounded-xl bg-[#25324B] hover:bg-[#1C2638] text-white text-xs font-bold shadow-2xs transition-all cursor-pointer whitespace-nowrap"
+                          >
+                            View Details
+                          </button>
+                        </div>
                       </div>
                     </div>
                   );

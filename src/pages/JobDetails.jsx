@@ -20,6 +20,11 @@ import {
 import { getStoredCompanies } from '../services/companiesService';
 import { recordActivity } from '../services/activityService';
 import {
+  applyForJob,
+  getApplicationsByJobId,
+  updateApplicationStatus,
+} from '../services/applicationsService';
+import {
   Briefcase,
   MapPin,
   DollarSign,
@@ -70,12 +75,56 @@ export const JobDetails = () => {
   const [applicantEmail, setApplicantEmail] = useState(user?.email || 'pavan.kumar@jobportal.com');
   const [applicantNote, setApplicantNote] = useState('');
 
-  // Sync when ID changes
+  // Sync when ID changes & listen for application updates
+  const [appsVersion, setAppsVersion] = useState(0);
+
   useEffect(() => {
     const found = getJobById(id);
     setJob(found);
     window.scrollTo({ top: 0, behavior: 'smooth' });
+
+    const handleSync = () => {
+      setJob(getJobById(id));
+      setAppsVersion((v) => v + 1);
+    };
+    window.addEventListener('applications_updated', handleSync);
+    window.addEventListener('storage', handleSync);
+    return () => {
+      window.removeEventListener('applications_updated', handleSync);
+      window.removeEventListener('storage', handleSync);
+    };
   }, [id]);
+
+  // Real applicants pipeline for this job connecting DummyJSON candidates
+  const jobApplicants = useMemo(() => {
+    if (!job) return [];
+    const direct = getApplicationsByJobId(job.id);
+    if (direct && direct.length > 0) return direct;
+
+    // Connect real DummyJSON candidates to this job
+    if (candidates && candidates.length > 0) {
+      const num = parseInt(String(job.id).replace(/\D/g, '') || '1', 10);
+      const start = (num * 2) % Math.max(1, candidates.length - 3);
+      const assigned = candidates.slice(start, start + 4);
+      return assigned.map((cand, idx) => ({
+        id: `app_${job.id}_${cand.id}`,
+        jobId: job.id,
+        jobTitle: job.title,
+        companyName: job.companyName,
+        candidateId: cand.id,
+        candidateName: cand.name,
+        candidateEmail: cand.email,
+        candidateRole: cand.role,
+        candidateAvatar: cand.avatar,
+        experienceYears: cand.experienceYears,
+        skills: cand.skills,
+        status: idx === 0 ? 'Interview' : idx === 1 ? 'Shortlisted' : 'In Review',
+        appliedAt: new Date(Date.now() - (idx + 1) * 86400000).toISOString(),
+        matchScore: cand.matchScore || 85,
+      }));
+    }
+    return [];
+  }, [job, candidates, appsVersion]);
 
   const enriched = useMemo(() => {
     return job ? getJobEnrichedDetails(job) : null;
@@ -154,22 +203,35 @@ export const JobDetails = () => {
       toast.info('You have already applied for this opening.');
       return;
     }
-    const updated = submitJobApplication(job.id);
-    if (updated) {
-      setJob(updated);
+
+    const currentCandidate = candidates.length > 0 ? candidates[0] : null;
+
+    const result = applyForJob({
+      jobId: job.id,
+      jobTitle: job.title,
+      companyName: job.companyName,
+      candidateId: currentCandidate?.id || 1,
+      candidateName: applicantName || currentCandidate?.name || user?.fullName || 'Olivia Wilson',
+      candidateEmail: applicantEmail || currentCandidate?.email || user?.email || 'olivia.wilson@example.com',
+      candidateRole: currentCandidate?.role || 'Senior Frontend Developer',
+      candidateAvatar: currentCandidate?.avatar || 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+      notes: applicantNote || 'Applied through candidate portal.',
+    });
+
+    if (result.success) {
+      setHasApplied(true);
+      setIsApplyModalOpen(false);
+      setJob((prev) => ({
+        ...prev,
+        applicationsCount: (Number(prev.applicationsCount) || 0) + 1,
+      }));
+      setAppsVersion((v) => v + 1);
+      toast.success(`Application submitted for "${job.title}" at ${job.companyName}!`, {
+        icon: '🚀',
+      });
+    } else {
+      toast.info(result.message || 'Already applied for this job.');
     }
-    setHasApplied(true);
-    setIsApplyModalOpen(false);
-    recordActivity({
-      type: 'application',
-      title: 'New application submitted',
-      meta: `Applied for ${job.title} at ${job.companyName}`,
-      link: `/jobs/${job.id}`,
-      iconType: 'user-check',
-    });
-    toast.success(`Application submitted for "${job.title}" at ${job.companyName}!`, {
-      icon: '🚀',
-    });
   };
 
   const handleToggleSave = () => {
@@ -594,63 +656,85 @@ export const JobDetails = () => {
                           </tr>
                         </thead>
                         <tbody className="divide-y divide-gray-100">
-                          {(candidates.length > 0 ? candidates.slice(0, 6) : (enriched?.applicantsList || [])).map((cand, idx) => {
-                            const stageList = [
-                              { stage: 'Shortlisted', color: 'bg-blue-50 text-blue-700 border-blue-200' },
-                              { stage: 'Interview', color: 'bg-purple-50 text-purple-700 border-purple-200' },
-                              { stage: 'Applied', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' },
-                              { stage: 'Under Review', color: 'bg-amber-50 text-amber-700 border-amber-200' },
-                            ];
-                            const currentStage = stageList[idx % stageList.length];
-                            return (
+                          {jobApplicants.length === 0 ? (
+                            <tr>
+                              <td colSpan="5" className="py-8 text-center text-[#7C8493]">
+                                No applicants yet for this position. Candidate applications will appear here in real-time.
+                              </td>
+                            </tr>
+                          ) : (
+                            jobApplicants.map((cand, idx) => (
                               <tr key={cand.id || idx} className="hover:bg-[#F8F9FC]/60 transition-colors">
                                 <td className="py-3 px-3">
                                   <div className="flex items-center gap-2.5">
                                     <div className="w-8 h-8 rounded-full border border-gray-200 overflow-hidden bg-white flex items-center justify-center font-bold text-xs flex-shrink-0">
-                                      {cand.avatar ? (
-                                        <img src={cand.avatar} alt={cand.name} className="w-full h-full object-cover" />
+                                      {cand.candidateAvatar || cand.avatar ? (
+                                        <img
+                                          src={cand.candidateAvatar || cand.avatar}
+                                          alt={cand.candidateName || cand.name}
+                                          className="w-full h-full object-cover"
+                                          onError={(e) => {
+                                            e.currentTarget.style.display = 'none';
+                                          }}
+                                        />
                                       ) : (
-                                        <span>{cand.name.charAt(0)}</span>
+                                        <span>{(cand.candidateName || cand.name || 'C').charAt(0)}</span>
                                       )}
                                     </div>
                                     <div className="min-w-0">
                                       <button
                                         type="button"
                                         onClick={() => {
-                                          selectCandidate(cand);
-                                          navigate(`/candidates/${cand.id}`);
+                                          const targetCand = candidates.find((c) => c.id === cand.candidateId) || cand;
+                                          selectCandidate(targetCand);
+                                          navigate(`/candidates/${cand.candidateId || 1}`);
                                         }}
                                         className="font-bold text-[#25324B] hover:text-blue-600 block truncate text-left cursor-pointer"
                                       >
-                                        {cand.name}
+                                        {cand.candidateName || cand.name}
                                       </button>
-                                      <span className="text-[11px] text-[#7C8493] block truncate">{cand.email}</span>
+                                      <span className="text-[11px] text-[#7C8493] block truncate">
+                                        {cand.candidateEmail || cand.email}
+                                      </span>
                                     </div>
                                   </div>
                                 </td>
 
                                 <td className="py-3 px-3 font-medium text-gray-600">
-                                  {cand.experienceYears || cand.experience || '2+ Years'}
+                                  {cand.experienceYears || '3+ Years'}
                                 </td>
 
                                 <td className="py-3 px-3">
                                   <span className="font-extrabold text-emerald-600 bg-emerald-50 px-2 py-0.5 rounded-md text-[11px]">
-                                    {cand.matchScore ? `${cand.matchScore}%` : '85%'}
+                                    {cand.matchScore ? `${cand.matchScore}%` : '88%'}
                                   </span>
                                 </td>
 
                                 <td className="py-3 px-3">
-                                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold border ${currentStage.color}`}>
-                                    {currentStage.stage}
-                                  </span>
+                                  <select
+                                    value={cand.status || 'In Review'}
+                                    onChange={(e) => {
+                                      updateApplicationStatus(cand.id, e.target.value);
+                                      setAppsVersion((v) => v + 1);
+                                      toast.success(`Candidate status moved to "${e.target.value}"`);
+                                    }}
+                                    className="text-[11px] font-bold px-2.5 py-1 rounded-full border border-gray-200 bg-white cursor-pointer outline-none"
+                                  >
+                                    <option value="In Review">In Review</option>
+                                    <option value="Shortlisted">Shortlisted</option>
+                                    <option value="Interview">Interview</option>
+                                    <option value="Hired">Hired</option>
+                                    <option value="Rejected">Rejected</option>
+                                  </select>
                                 </td>
 
                                 <td className="py-3 px-3 text-right">
                                   <button
                                     type="button"
                                     onClick={() => {
-                                      selectCandidate(cand);
-                                      navigate(`/candidates/${cand.id}`);
+                                      const targetCand = candidates.find((c) => c.id === cand.candidateId) || cand;
+                                      selectCandidate(targetCand);
+                                      navigate(`/candidates/${cand.candidateId || 1}`);
                                     }}
                                     className="px-3 py-1 rounded-lg bg-[#25324B] hover:bg-[#1C2638] text-white text-[11px] font-bold transition-all cursor-pointer inline-flex items-center gap-1"
                                   >
@@ -659,8 +743,8 @@ export const JobDetails = () => {
                                   </button>
                                 </td>
                               </tr>
-                            );
-                          })}
+                            ))
+                          )}
                         </tbody>
                       </table>
                     </div>

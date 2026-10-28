@@ -8,6 +8,7 @@ import { DashboardCharts } from '../components/dashboard/DashboardCharts';
 import { RecentActivities } from '../components/dashboard/RecentActivities';
 import { TopCompanies } from '../components/dashboard/TopCompanies';
 import { QuickJobModal } from '../components/dashboard/QuickJobModal';
+import { CandidateDashboard } from '../components/dashboard/CandidateDashboard';
 import { getStoredCompanies } from '../services/companiesService';
 import { getJobStats, getSavedJobIds } from '../services/jobsService';
 import { useCandidates } from '../context/CandidatesContext';
@@ -30,6 +31,12 @@ import { toast } from 'react-toastify';
 
 export const Dashboard = () => {
   const { user, role, logout } = useAuth();
+
+  // If logged in as Candidate, render the dedicated Candidate Dashboard
+  if (role === 'candidate') {
+    return <CandidateDashboard />;
+  }
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [isPostModalOpen, setIsPostModalOpen] = useState(false);
 

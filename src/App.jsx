@@ -15,6 +15,7 @@ import { Jobs } from './pages/Jobs';
 import { JobDetails } from './pages/JobDetails';
 import { JobSearch } from './pages/JobSearch';
 import { SavedJobs } from './pages/SavedJobs';
+import { Applications } from './pages/Applications';
 import { Reports } from './pages/Reports';
 import { CandidateProfile } from './pages/CandidateProfile';
 import { Candidates } from './pages/Candidates';
@@ -116,7 +117,7 @@ export function App() {
             path="/applications"
             element={
               <ProtectedRoute>
-                <Jobs />
+                <Applications />
               </ProtectedRoute>
             }
           />

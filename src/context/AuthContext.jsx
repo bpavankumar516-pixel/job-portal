@@ -150,6 +150,17 @@ export const AuthProvider = ({ children }) => {
     }
   };
 
+  // Update current user profile in state & localStorage
+  const updateUserProfile = (updatedFields) => {
+    setUser((prev) => {
+      const merged = { ...prev, ...updatedFields };
+      try {
+        localStorage.setItem('jobportal_current_user', JSON.stringify(merged));
+      } catch {}
+      return merged;
+    });
+  };
+
   const value = {
     user,
     token,
@@ -163,6 +174,7 @@ export const AuthProvider = ({ children }) => {
     logout,
     socialLogin,
     requestPasswordReset,
+    updateUserProfile,
     resetPassword,
   };
 

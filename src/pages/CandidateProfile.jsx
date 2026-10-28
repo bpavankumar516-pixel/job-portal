@@ -5,6 +5,7 @@ import { HeaderNavbar } from '../components/common/HeaderNavbar';
 import { AddEditCandidateModal } from '../components/candidates/AddEditCandidateModal';
 import { DeleteCandidateModal } from '../components/candidates/DeleteCandidateModal';
 import { useCandidates } from '../context/CandidatesContext';
+import { useAuth } from '../context/AuthContext';
 import {
   ArrowLeft,
   Star,
@@ -45,7 +46,10 @@ const LinkedInIcon = () => (
 export const CandidateProfile = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const { user, role, updateUserProfile } = useAuth();
   const [sidebarOpen, setSidebarOpen] = useState(false);
+
+  const isCandidate = role === 'candidate';
 
   // Candidates Context Hook (Powered by DummyJSON Users API)
   const {
@@ -116,7 +120,15 @@ export const CandidateProfile = () => {
   const handleEditSubmit = async (formData) => {
     if (candidate) {
       await updateCandidate(candidate.id, formData);
+      if (updateUserProfile && isCandidate) {
+        updateUserProfile({
+          fullName: formData.name,
+          headline: formData.role,
+          title: formData.role,
+        });
+      }
       setIsEditModalOpen(false);
+      toast.success('Profile details updated successfully!');
     }
   };
 
@@ -145,129 +157,157 @@ export const CandidateProfile = () => {
           <HeaderNavbar
             onToggleSidebar={() => setSidebarOpen(true)}
             breadcrumb={
-              <Link
-                to="/candidates"
-                className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7C8493] hover:text-[#25324B] transition-colors"
-              >
-                <ArrowLeft className="w-3.5 h-3.5" />
-                <span>Back to Candidates</span>
-              </Link>
-            }
-            title="Candidate Profile"
-            subtitle="View detailed information about the candidate, skills, experience and application history."
-            searchPlaceholder="Search candidates, skills, locations..."
-            rightAction={
-              <div className="flex items-center gap-2 relative">
-                {/* Dedicated Candidates Directory Link (No popup modal!) */}
+              isCandidate ? null : (
                 <Link
                   to="/candidates"
-                  className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#E9ECF2] text-xs font-bold text-[#515B6F] hover:text-[#25324B] hover:bg-gray-50 transition-colors cursor-pointer shadow-2xs"
-                  title="View all candidate members on dedicated directory page"
+                  className="inline-flex items-center gap-1.5 text-xs font-bold text-[#7C8493] hover:text-[#25324B] transition-colors"
                 >
-                  <Users className="w-3.5 h-3.5 text-[#7C8493]" />
-                  <span>All Candidates ({candidates.length})</span>
+                  <ArrowLeft className="w-3.5 h-3.5" />
+                  <span>Back to Candidates</span>
                 </Link>
-
-                {/* Edit Candidate Button */}
-                <button
-                  type="button"
-                  onClick={() => setIsEditModalOpen(true)}
-                  className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl bg-white border border-[#E9ECF2] hover:bg-gray-50 text-[#25324B] text-xs font-bold transition-all cursor-pointer shadow-2xs"
-                  title="Edit Candidate Profile"
-                >
-                  <Edit3 className="w-3.5 h-3.5 text-[#515B6F]" />
-                  <span>Edit</span>
-                </button>
-
-                {/* Shortlist Button matching reference image */}
-                <button
-                  type="button"
-                  onClick={() => candidate && toggleShortlist(candidate.id, candidate.name)}
-                  className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
-                    shortlisted
-                      ? 'bg-amber-50 text-amber-700 border-amber-300'
-                      : 'bg-white text-[#25324B] border-[#E9ECF2] hover:bg-gray-50'
-                  }`}
-                >
-                  <Star className={`w-3.5 h-3.5 ${shortlisted ? 'fill-amber-400 text-amber-400' : 'text-[#7C8493]'}`} />
-                  <span>{shortlisted ? 'Shortlisted' : 'Shortlist'}</span>
-                </button>
-
-                {/* Message Button matching reference image */}
-                <button
-                  type="button"
-                  onClick={() => setIsMessageModalOpen(true)}
-                  className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl bg-[#25324B] hover:bg-[#1C2638] text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-[#25324B]/15"
-                >
-                  <MessageSquare className="w-3.5 h-3.5" />
-                  <span>Message</span>
-                </button>
-
-                {/* Three dots options */}
-                <div className="relative">
+              )
+            }
+            title={isCandidate ? 'My Candidate Profile' : 'Candidate Profile'}
+            subtitle={
+              isCandidate
+                ? 'Manage your personal portfolio, experience, skills, and resume details.'
+                : 'View detailed information about the candidate, skills, experience and application history.'
+            }
+            searchPlaceholder={isCandidate ? 'Search skills, experience...' : 'Search candidates, skills, locations...'}
+            rightAction={
+              isCandidate ? (
+                <div className="flex items-center gap-2">
                   <button
                     type="button"
-                    onClick={() => setMoreMenuOpen(!moreMenuOpen)}
-                    className="p-2 rounded-xl bg-white border border-[#E9ECF2] text-[#7C8493] hover:text-[#25324B] hover:bg-gray-50 transition-colors cursor-pointer"
+                    onClick={handleDownloadResume}
+                    className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl bg-white border border-[#E9ECF2] hover:bg-gray-50 text-[#25324B] text-xs font-bold transition-all cursor-pointer shadow-2xs"
                   >
-                    <MoreVertical className="w-4 h-4" />
+                    <Download className="w-3.5 h-3.5 text-[#515B6F]" />
+                    <span>Download Resume</span>
                   </button>
 
-                  {moreMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-[#E9ECF2] p-1.5 z-30 text-xs text-left animate-fadeIn">
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMoreMenuOpen(false);
-                          setIsEditModalOpen(true);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#F8F9FC] font-semibold text-[#25324B] transition-colors"
-                      >
-                        <Edit3 className="w-3.5 h-3.5 text-gray-400" />
-                        <span>Edit Candidate</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={handleCopyLink}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#F8F9FC] font-semibold text-[#25324B] transition-colors"
-                      >
-                        <Copy className="w-3.5 h-3.5 text-gray-400" />
-                        <span>Copy Profile Link</span>
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMoreMenuOpen(false);
-                          handleDownloadResume();
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#F8F9FC] font-semibold text-[#25324B] transition-colors"
-                      >
-                        <Download className="w-3.5 h-3.5 text-gray-400" />
-                        <span>Download Profile PDF</span>
-                      </button>
-                      <Link
-                        to="/candidates"
-                        onClick={() => setMoreMenuOpen(false)}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#F8F9FC] font-semibold text-[#25324B] transition-colors"
-                      >
-                        <Users className="w-3.5 h-3.5 text-gray-400" />
-                        <span>All Candidates Directory</span>
-                      </Link>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setMoreMenuOpen(false);
-                          setIsDeleteModalOpen(true);
-                        }}
-                        className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-rose-50 font-semibold text-rose-600 transition-colors"
-                      >
-                        <Trash2 className="w-3.5 h-3.5 text-rose-500" />
-                        <span>Delete Candidate</span>
-                      </button>
-                    </div>
-                  )}
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl bg-[#25324B] hover:bg-[#1C2638] text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-[#25324B]/15"
+                  >
+                    <Edit3 className="w-3.5 h-3.5" />
+                    <span>Edit Profile</span>
+                  </button>
                 </div>
-              </div>
+              ) : (
+                <div className="flex items-center gap-2 relative">
+                  {/* Dedicated Candidates Directory Link (No popup modal!) */}
+                  <Link
+                    to="/candidates"
+                    className="hidden sm:flex items-center gap-1.5 px-3 py-2 rounded-xl bg-white border border-[#E9ECF2] text-xs font-bold text-[#515B6F] hover:text-[#25324B] hover:bg-gray-50 transition-colors cursor-pointer shadow-2xs"
+                    title="View all candidate members on dedicated directory page"
+                  >
+                    <Users className="w-3.5 h-3.5 text-[#7C8493]" />
+                    <span>All Candidates ({candidates.length})</span>
+                  </Link>
+
+                  {/* Edit Candidate Button */}
+                  <button
+                    type="button"
+                    onClick={() => setIsEditModalOpen(true)}
+                    className="flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl bg-white border border-[#E9ECF2] hover:bg-gray-50 text-[#25324B] text-xs font-bold transition-all cursor-pointer shadow-2xs"
+                    title="Edit Candidate Profile"
+                  >
+                    <Edit3 className="w-3.5 h-3.5 text-[#515B6F]" />
+                    <span>Edit</span>
+                  </button>
+
+                  {/* Shortlist Button matching reference image */}
+                  <button
+                    type="button"
+                    onClick={() => candidate && toggleShortlist(candidate.id, candidate.name)}
+                    className={`flex items-center gap-1.5 px-3.5 sm:px-4 py-2 rounded-xl text-xs font-bold border transition-all cursor-pointer shadow-2xs ${
+                      shortlisted
+                        ? 'bg-amber-50 text-amber-700 border-amber-300'
+                        : 'bg-white text-[#25324B] border-[#E9ECF2] hover:bg-gray-50'
+                    }`}
+                  >
+                    <Star className={`w-3.5 h-3.5 ${shortlisted ? 'fill-amber-400 text-amber-400' : 'text-[#7C8493]'}`} />
+                    <span>{shortlisted ? 'Shortlisted' : 'Shortlist'}</span>
+                  </button>
+
+                  {/* Message Button matching reference image */}
+                  <button
+                    type="button"
+                    onClick={() => setIsMessageModalOpen(true)}
+                    className="flex items-center gap-1.5 px-4 sm:px-5 py-2 rounded-xl bg-[#25324B] hover:bg-[#1C2638] text-white text-xs font-bold transition-all cursor-pointer shadow-md shadow-[#25324B]/15"
+                  >
+                    <MessageSquare className="w-3.5 h-3.5" />
+                    <span>Message</span>
+                  </button>
+
+                  {/* Three dots options */}
+                  <div className="relative">
+                    <button
+                      type="button"
+                      onClick={() => setMoreMenuOpen(!moreMenuOpen)}
+                      className="p-2 rounded-xl bg-white border border-[#E9ECF2] text-[#7C8493] hover:text-[#25324B] hover:bg-gray-50 transition-colors cursor-pointer"
+                    >
+                      <MoreVertical className="w-4 h-4" />
+                    </button>
+
+                    {moreMenuOpen && (
+                      <div className="absolute right-0 mt-2 w-48 bg-white rounded-2xl shadow-xl border border-[#E9ECF2] p-1.5 z-30 text-xs text-left animate-fadeIn">
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMoreMenuOpen(false);
+                            setIsEditModalOpen(true);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#F8F9FC] font-semibold text-[#25324B] transition-colors"
+                        >
+                          <Edit3 className="w-3.5 h-3.5 text-gray-400" />
+                          <span>Edit Candidate</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={handleCopyLink}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#F8F9FC] font-semibold text-[#25324B] transition-colors"
+                        >
+                          <Copy className="w-3.5 h-3.5 text-gray-400" />
+                          <span>Copy Profile Link</span>
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMoreMenuOpen(false);
+                            handleDownloadResume();
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#F8F9FC] font-semibold text-[#25324B] transition-colors"
+                        >
+                          <Download className="w-3.5 h-3.5 text-gray-400" />
+                          <span>Download Profile PDF</span>
+                        </button>
+                        <Link
+                          to="/candidates"
+                          onClick={() => setMoreMenuOpen(false)}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-[#F8F9FC] font-semibold text-[#25324B] transition-colors"
+                        >
+                          <Users className="w-3.5 h-3.5 text-gray-400" />
+                          <span>All Candidates Directory</span>
+                        </Link>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setMoreMenuOpen(false);
+                            setIsDeleteModalOpen(true);
+                          }}
+                          className="w-full flex items-center gap-2 px-3 py-2 rounded-xl hover:bg-red-50 text-red-600 font-semibold transition-colors"
+                        >
+                          <Trash2 className="w-3.5 h-3.5 text-red-500" />
+                          <span>Delete Candidate</span>
+                        </button>
+                      </div>
+                    )}
+                  </div>
+                </div>
+              )
             }
           />
 

@@ -40,20 +40,20 @@ const APPLICATION_STATUSES = [
  * Enriches a raw DummyJSON user object with realistic tech candidate fields
  */
 export const enrichCandidate = (user, index = 0) => {
-  // Candidate #1 matches exact reference image (Rahul Sharma)
+  // Candidate #1 matches exact candidate profile (Olivia Wilson)
   const isPrimary = index === 0;
 
-  const fullName = isPrimary ? 'Rahul Sharma' : `${user.firstName} ${user.lastName}`;
+  const fullName = isPrimary ? 'Olivia Wilson' : `${user.firstName} ${user.lastName}`;
   const role = isPrimary ? 'Frontend Developer' : TECH_ROLES[index % TECH_ROLES.length];
   const skills = isPrimary ? TECH_SKILLS_POOL[0] : TECH_SKILLS_POOL[index % TECH_SKILLS_POOL.length];
   const location = isPrimary
-    ? 'Bengaluru, KA'
+    ? 'San Francisco, CA'
     : `${user.address?.city || 'Hyderabad'}, ${user.address?.stateCode || 'TS'}`;
-  const email = isPrimary ? 'rahul.sharma@example.com' : user.email;
-  const phone = isPrimary ? '+91 98765 43210' : user.phone;
+  const email = isPrimary ? 'olivia.wilson@example.com' : user.email;
+  const phone = isPrimary ? '+1 (555) 234-5678' : user.phone;
   const age = isPrimary ? 26 : user.age || 27;
-  const username = isPrimary ? 'rahul' : user.username || 'candidate';
-  const university = isPrimary ? 'JNTU, Hyderabad' : user.university || 'National Institute of Technology';
+  const username = isPrimary ? 'olivia' : user.username || 'candidate';
+  const university = isPrimary ? 'Stanford University' : user.university || 'National Institute of Technology';
   const companyName = isPrimary ? 'TechCorp Solutions' : user.company?.name || 'TechCorp Global';
   const prevCompanyName = isPrimary ? 'WebTech Innovations' : 'InnovateSoft Technologies';
 
@@ -61,11 +61,13 @@ export const enrichCandidate = (user, index = 0) => {
     id: user.id || index + 1,
     dummyId: user.id,
     name: fullName,
-    firstName: isPrimary ? 'Rahul' : user.firstName,
-    lastName: isPrimary ? 'Sharma' : user.lastName,
+    firstName: isPrimary ? 'Olivia' : user.firstName,
+    lastName: isPrimary ? 'Wilson' : user.lastName,
     headline: role,
     role: role,
-    avatar: user.image || `https://dummyjson.com/icon/${user.username || 'user'}/128`,
+    avatar: isPrimary
+      ? 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80'
+      : user.image || `https://dummyjson.com/icon/${user.username || 'user'}/128`,
     fallbackLetter: fullName.charAt(0).toUpperCase(),
     location: location,
     email: email,

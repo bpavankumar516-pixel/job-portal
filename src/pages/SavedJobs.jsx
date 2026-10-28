@@ -11,6 +11,7 @@ import {
   isJobApplied,
 } from '../services/jobsService';
 import { recordActivity } from '../services/activityService';
+import { applyForJob, withdrawApplication } from '../services/applicationsService';
 import {
   Bookmark,
   Heart,
@@ -233,32 +234,29 @@ export const SavedJobs = () => {
     }
   };
 
-  // Toggle Apply to Job
+  // Toggle Apply to Job (Synchronizes dynamically with Recruiter Portal)
   const handleToggleApply = (job, e) => {
     if (e) e.stopPropagation();
     const isNowApplied = toggleApplyJob(job.id);
     setAppliedJobIds(getAppliedJobIds());
 
     if (isNowApplied) {
+      applyForJob({
+        jobId: job.id,
+        jobTitle: job.title,
+        companyName: job.companyName,
+        candidateId: 1,
+        candidateName: 'Olivia Wilson',
+        candidateEmail: 'olivia.wilson@example.com',
+        candidateRole: 'Senior Frontend Developer',
+        candidateAvatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
+      });
       toast.success(`Application submitted for ${job.title} at ${job.companyName}!`, {
         icon: '🚀',
       });
-      recordActivity({
-        type: 'application',
-        title: 'New application submitted',
-        meta: `Applied for ${job.title} at ${job.companyName}`,
-        link: `/jobs/${job.id}`,
-        iconType: 'user-check',
-      });
     } else {
+      withdrawApplication(job.id);
       toast.info(`Application withdrawn for ${job.title}.`);
-      recordActivity({
-        type: 'application',
-        title: 'Application withdrawn',
-        meta: `Withdrew application for ${job.title} at ${job.companyName}`,
-        link: `/jobs/${job.id}`,
-        iconType: 'file-text',
-      });
     }
   };
 

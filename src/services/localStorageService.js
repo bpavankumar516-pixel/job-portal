@@ -20,13 +20,13 @@ const DEFAULT_USERS = [
   },
   {
     id: 'usr_candidate_01',
-    fullName: 'Alex Morgan',
+    fullName: 'Olivia Wilson',
     email: 'candidate@jobportal.com',
     password: 'Password@123',
     role: 'candidate',
-    title: 'Senior React & Node Developer',
-    headline: 'Full-Stack Software Engineer',
-    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    title: 'Senior Frontend Developer',
+    headline: 'Senior Frontend Engineer & React Specialist',
+    avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80',
     createdAt: new Date().toISOString(),
   }
 ];
@@ -41,20 +41,30 @@ export const initUsersDB = () => {
       const rec = users.find((u) => u.email === 'recruiter@jobportal.com');
       if (rec && rec.fullName !== 'Pavan Kumar') {
         rec.fullName = 'Pavan Kumar';
-        localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
       }
+      const cand = users.find((u) => u.email === 'candidate@jobportal.com');
+      if (cand && cand.fullName !== 'Olivia Wilson') {
+        cand.fullName = 'Olivia Wilson';
+        cand.title = 'Senior Frontend Developer';
+        cand.avatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80';
+      }
+      localStorage.setItem(USERS_DB_KEY, JSON.stringify(users));
     } catch {
       // ignore
     }
   }
 
-  // Update current session if logged in as recruiter
+  // Update current session if logged in as recruiter or candidate
   try {
     const cur = localStorage.getItem(USER_KEY);
     if (cur) {
       const parsed = JSON.parse(cur);
       if (parsed.email === 'recruiter@jobportal.com' && parsed.fullName !== 'Pavan Kumar') {
         parsed.fullName = 'Pavan Kumar';
+        localStorage.setItem(USER_KEY, JSON.stringify(parsed));
+      } else if (parsed.email === 'candidate@jobportal.com' && parsed.fullName !== 'Olivia Wilson') {
+        parsed.fullName = 'Olivia Wilson';
+        parsed.avatar = 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=150&auto=format&fit=crop&q=80';
         localStorage.setItem(USER_KEY, JSON.stringify(parsed));
       }
     }
